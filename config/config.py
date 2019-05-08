@@ -49,7 +49,7 @@ KNACK_FIELDS = {
     },
     "Applications" : {
         "field_id" : "",
-        "handle" : "MAP_APPS"
+        "handle" : "MAP_REPOS"
     },
     "Created By" : {
         "field_id" : "",
@@ -103,7 +103,7 @@ LABEL_MAPS = {
 
 
 
-APPS = {
+REPOS = {
     "AMANDA" : "atd-amanda",
     "AMANDA - GIS Viewer" : "atd-amanda",
     "AMANDA - Portal" : "atd-amanda",

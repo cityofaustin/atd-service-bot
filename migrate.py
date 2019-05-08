@@ -1,3 +1,7 @@
+#TODO:
+# validator/checker
+# assignments
+
 import pdb
 from pprint import pprint as print
 
@@ -49,6 +53,17 @@ for row in kn.data:
 
             except KeyError:
                 continue
+        
+        elif "MAP_REPOS" in KNACK_FIELDS[field]['handle']:
+            # map the app name to a repo where the issue will be created
+            try:
+                if row[field]:
+                    app_name = row[field]
+
+            except KeyError:
+                continue
+
+            github_issue['repo'] = REPOS[app_name]
 
         else:
             # send the "handle" value as a key in the issue dict
@@ -58,10 +73,9 @@ for row in kn.data:
             except KeyError:
                 continue
 
-
     github_issue['description'] = description
 
-    pdb.set_trace()
+    prepared.append(github_issue)
 
 pdb.set_trace()
 
