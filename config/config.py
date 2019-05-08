@@ -55,7 +55,7 @@ KNACK_FIELDS = {
         "field_id" : "",
         "handle" : "merge_with_description"
     },
-    "Assigned To" : {
+    "Assigned to" : {
         "field_id" : "",
         "handle" : "MAP_ASSIGNEES"
     },
@@ -122,13 +122,14 @@ REPOS = {
 }
 
 ASSIGNEES = {
-    "alan.deanda@austintexas.gov" : "alan-deanda",
-    "amenity.applewhite@austintexas.gov" : "amenity",
-    "diana.martin@austintexas.gov" : "dianamartin",
-    "jaime.mckeown@austintexas.gov" : "jaime-mckeown",
-    "zhaowei.liang@austintexas.gov" : "JoeyL6",
-    "john.clary@austintexas.gov" : "johnclary",
-    "mateo.clarke@austintexas.gov" : "mateoclarke",
-    "matt.stevens@austintexas.gov" : "mstevens-atx",
-    "tracy.linder@austintexas.gov" : "TracyLinder",
+    "Alan De Anda" : "alan-deanda",
+    "Amenity Applewhite" : "amenity",
+    "Diana Martin" : "dianamartin",
+    "Jaime McKeown" : "jaime-mckeown",
+    "Joey Liang" : "JoeyL6",
+    "John Clary" : "johnclary",
+    "Mateo Clarke" : "mateoclarke",
+    "Matt Stevens" : "mstevens-atx",
+    "Tracy Linder" : "TracyLinder",
+    "Billy Howland" : "wchIV"
 }

@@ -1,6 +1,8 @@
 #TODO:
 # validator/checker
 # assignments
+# update knack issue with github link
+# udpate knack issue with migration status
 
 import pdb
 from pprint import pprint as print
@@ -64,6 +66,17 @@ for row in kn.data:
                 continue
 
             github_issue['repo'] = REPOS[app_name]
+
+        elif "MAP_ASSIGNEES" in KNACK_FIELDS[field]['handle']:
+            # map the assignee to github username
+            try:
+                if row[field]:
+                    assignee = row[field]
+
+            except KeyError:
+                continue
+
+            github_issue['assignee'] = ASSIGNEES[assignee]
 
         else:
             # send the "handle" value as a key in the issue dict
