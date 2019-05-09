@@ -1,135 +1,149 @@
+
 KNACK_APP = {
-    'scene' : 'scene_127',
-    'view' : 'view_244',
-    'app_id' : '595d00ebd315cc4cb98daff4',
-    'ref_obj' : ['object_6']
+    "scene": "scene_127",
+    "view": "view_244",
+    "app_id": "595d00ebd315cc4cb98daff4",
+    "ref_obj": ["object_6"],
 }
 
-
-KNACK_FIELDS = {
-    "Description" : {
-        "field_id" : "",
-        "handle" : "merge_with_description"
+FIELDS = [
+    {
+        "knack": "Description",
+        "github": "description",
+        "method": "merge",
+        "required": True,
     },
-    "Request Date" : {
-        "field_id" : "",
-        "handle" : "merge_with_description"
+    {
+        "knack": "Request Date",
+        "github": "description",
+        "method": "transform_merge",
+        "transform": "mills_to_timestamp",
+        "required": False,
     },
-    "Request ID" : {
-        "field_id" : "",
-        "handle" : "merge_with_description"
+    {
+        "knack": "Request ID",
+        "github": "description",
+        "required": True,
+        "method": "merge",
     },
-    "Status" : {
-        "field_id" : "",
-        "handle" : "merge_with_description"
+    {"knack": "Status", "github": "description", "required": False, "method": "merge"},
+    {
+        "knack": "Customer Priority",
+        "github": "description",
+        "required": False,
+        "method": "merge",
     },
-    "Customer Priority " : {
-        "field_id" : "",
-        "handle" : "merge_with_description"
+    {"knack": "Subject", "github": "title", "required": True, "method": "copy"},
+    {
+        "knack": "Division",
+        "github": "labels",
+        "method": "map_append",
+        "required": False,
+        "map": {
+            "ACTIVE TRANSPORTATION": "Workgroup: ATSD",
+            "ARTERIAL MANAGEMENT": "Workgroup: AMD",
+            "FINANCE AND ADMINISTRATION": "Workgroup: Finance",
+            "N/A": "Workgroup: Other",
+            "OFFICE OF THE DIRECTOR": "Workgroup: OOD",
+            "OFFICE OF SPECIAL EVENTS": "Workgroup: OSE",
+            "PARKING ENTERPRISE": "Workgroup: PE",
+            "PARKING METERS": "Workgroup: PE",
+            "PIO": "Workgroup: PIO",
+            "ROW": "Workgroup: ROW",
+            "SIGNS AND MARKINGS": "Workgroup: SMB",
+            "SYSTEMS DEVELOPMENT": "Workgroup: SDD",
+            "TRANSPORTATION ENGINEERING": "Workgroup: TE",
+            "SIGNS AND MARKINGS - SPECIAL PROJECT": "Workgroup: SMB",
+            "DATA AND TECHNOLOGY SERVICES": "Workgroup: DTS",
+            "Human Resources (HR)": "Workgroup: HR",
+        },
     },
-    "Subject" : {
-        "field_id" : "",
-        "handle" : "title"
+    {
+        "knack": "Level of Effort",
+        "github": "description",
+        "method": "merge",
+        "required": False,
     },
-    "Division" : {
-        "field_id" : "",
-        "handle" : "MAP_LABELS_WORKGROUPS"
+    {
+        "knack": "Request Type",
+        "github": "labels",
+        "required": False,
+        "method": "map_append",
+        "map": {
+            "Bug Report": "Type: Bug Report",
+            "Enhancement Request": "Type: Enhancement",
+            "Map Request": "Type: Map Request",
+            "New Application": "Type: New Application",
+            "Other": "Type: Other",
+            "Report Request": "Type: Reports",
+            "Script / Data Automation": "Type: Other",
+        },
     },
-    "Level of Effort" : {
-        "field_id" : "",
-        "handle" : "merge_with_description"
+    {
+        "knack": "Service Group(s)",
+        "github": "labels",
+        "required": False,
+        "method": "map_append",
+        "map": {
+            "App Support": "Team: Apps",
+            "Geospatial": "Team: Geo",
+            "Infrastructure & Engineering": "Team: Dev",
+            "Professional Services": "Team: PM",
+        },
     },
-    "Request Type" : {
-        "field_id" : "",
-        "handle" : "MAP_LABELS_TYPES"
+    {
+        "knack": "Applications",
+        "github": "repo",
+        "method": "map",
+        "required": True,
+        "map": {
+            "AMANDA": "atd-amanda",
+            "AMANDA - GIS Viewer": "atd-amanda",
+            "AMANDA - Portal": "atd-amanda",
+            "CSR (311)": "atd-data-tech",
+            "Data Tracker": "atd-knack-data-tracker",
+            "Finance and Purchasing Request System (Formerly O.P.R.A.S).": "atd-knack-finance-purchasing",
+            "GISMAINT1": "atd-geospatial",
+            "IMMPACT": "atd-geospatial",
+            "KITS": "atd-data-tech",
+            "Online Bike Map": "atd-geospatial",
+            "Open Data and Performance Hub": "transportation.austintexas.io",
+            "ROWPACT": "atd-geospatial",
+            "Signal Preventative Maintenance (Fulcrum)": "atd-data-tech",
+            "Street Banner Program Portal": "atd-knack-street-banner",
+            "Traffic Signal Assets Web App": "atd-geospatial",
+        },
     },
-    "Service Group(s)" : {
-        "field_id" : "",
-        "handle" : "MAP_LABELS_TEAMS"
+    {"knack": "Created By", "github": "description", "method": "merge"},
+    {
+        "knack": "Assigned to",
+        "github": "assignee",
+        "required": False,
+        "method": "map",
+        "map": {
+            "Alan De Anda": "alan-deanda",
+            "Amenity Applewhite": "amenity",
+            "Diana Martin": "dianamartin",
+            "Jaime McKeown": "jaime-mckeown",
+            "Joey Liang": "JoeyL6",
+            "John Clary": "johnclary",
+            "Mateo Clarke": "mateoclarke",
+            "Matt Stevens": "mstevens-atx",
+            "Tracy Linder": "TracyLinder",
+            "Billy Howland": "wchIV",
+        },
     },
-    "Applications" : {
-        "field_id" : "",
-        "handle" : "MAP_REPOS"
+    {
+        "knack": "id",
+        "github": "description",
+        "required": True,
+        "method": "transform_merge",
+        "transform": "app_url",
     },
-    "Created By" : {
-        "field_id" : "",
-        "handle" : "merge_with_description"
+    {
+        "knack": "id",
+        "github": "knack_id",
+        "required": True,
+        "method": "copy",
     },
-    "Assigned to" : {
-        "field_id" : "",
-        "handle" : "MAP_ASSIGNEES"
-    },
-    'id' : {
-        "field_id" : "id",
-        "handle" : "url_in_description"
-    }
-}
-
-LABEL_MAPS = {
-    "WORKGROUPS" : {
-        "ACTIVE TRANSPORTATION" : "Workgroup: ATSD",
-        "ARTERIAL MANAGEMENT" : "Workgroup: AMD",
-        "FINANCE AND ADMINISTRATION" : "Workgroup: Finance",
-        "N/A" : "Workgroup: Other",
-        "OFFICE OF THE DIRECTOR" : "Workgroup: OOD",
-        "OFFICE OF SPECIAL EVENTS" : "Workgroup: OSE",
-        "PARKING ENTERPRISE" : "Workgroup: PE",
-        "PARKING METERS" : "Workgroup: PE",
-        "PIO" : "Workgroup: PIO",
-        "ROW" : "Workgroup: ROW",
-        "SIGNS AND MARKINGS" : "Workgroup: SMB",
-        "SYSTEMS DEVELOPMENT" : "Workgroup: SDD",
-        "TRANSPORTATION ENGINEERING" : "Workgroup: TE",
-        "SIGNS AND MARKINGS - SPECIAL PROJECT" : "Workgroup: SMB",
-        "DATA AND TECHNOLOGY SERVICES" : "Workgroup: DTS",
-        "Human Resources (HR)" : "Workgroup: HR"
-    },  
-    "TYPES" : {
-        "Bug Report" : "Type: Bug Report",
-        "Enhancement Request" : "Type: Enhancement",
-        "Map Request" : "Type: Map Request",
-        "New Application" : "Type: New Application",
-        "Other" : "Type: Other",
-        "Report Request" : "Type: Reports",
-        "Script / Data Automation" : "Type: Other",
-    },
-    "TEAMS" : {
-        "App Support" : "Team: Apps",
-        "Geospatial" : "Team: Geo",
-        "Infrastructure & Engineering" : "Team: Dev",
-        "Professional Services" : "Team: PM",
-    }
-}
-
-
-
-REPOS = {
-    "AMANDA" : "atd-amanda",
-    "AMANDA - GIS Viewer" : "atd-amanda",
-    "AMANDA - Portal" : "atd-amanda",
-    "CSR (311)" : "atd-data-tech",
-    "Data Tracker" : "atd-knack-data-tracker",
-    "Finance and Purchasing Request System (Formerly O.P.R.A.S)." : "atd-knack-finance-purchasing",
-    "GISMAINT1" : "atd-geospatial",
-    "IMMPACT" : "atd-geospatial",
-    "KITS" : "atd-data-tech",
-    "Online Bike Map" : "atd-geospatial",
-    "Open Data and Performance Hub" : "transportation.austintexas.io",
-    "ROWPACT" : "atd-geospatial",
-    "Signal Preventative Maintenance (Fulcrum)" : "atd-data-tech",
-    "Street Banner Program Portal" : "atd-knack-street-banner",
-    "Traffic Signal Assets Web App" : "atd-geospatial",
-}
-
-ASSIGNEES = {
-    "Alan De Anda" : "alan-deanda",
-    "Amenity Applewhite" : "amenity",
-    "Diana Martin" : "dianamartin",
-    "Jaime McKeown" : "jaime-mckeown",
-    "Joey Liang" : "JoeyL6",
-    "John Clary" : "johnclary",
-    "Mateo Clarke" : "mateoclarke",
-    "Matt Stevens" : "mstevens-atx",
-    "Tracy Linder" : "TracyLinder",
-    "Billy Howland" : "wchIV"
-}
+]

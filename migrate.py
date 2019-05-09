@@ -1,4 +1,4 @@
-#TODO:
+# TODO:
 # validator/checker
 # assignments
 # update knack issue with github link
@@ -11,84 +11,95 @@ from knackpy import Knack
 
 from config.config import *
 from config.secrets import API_KEY
+import transforms
+
+# def validate_issue_payload(issue, field_definitions):
+
 
 kn = Knack(
-  scene=KNACK_APP['scene'],
-  view=KNACK_APP['view'],
-  app_id=KNACK_APP['app_id'],
-  api_key=API_KEY,
-  ref_obj=KNACK_APP['ref_obj']
+    scene=KNACK_APP["scene"],
+    view=KNACK_APP["view"],
+    app_id=KNACK_APP["app_id"],
+    api_key=API_KEY,
+    ref_obj=KNACK_APP["ref_obj"],
 )
 
 prepared = []
 
 for row in kn.data:
     github_issue = {
-        "description" : "",
-        "labels" : [],
-        "title" : ""
+        "description": "",
+        "labels": [],
+        "title": "",
+        "assignee": None,
+        "github_url": None,
+        "knack_id": None,
+        "repo": None,
     }
-    
-    description = ''
 
-    for field in KNACK_FIELDS.keys():
-        if KNACK_FIELDS[field]['handle'] == 'merge_with_description':
-            # add field values to issue description
+    for field in FIELDS:
+        if field["method"] == "merge":
+            old_value = github_issue[field["github"]]
+
             try:
-                description = f"{description}\n{field}: {row[field]}\n"
+                new_value = f"{old_value}{field['knack']}: {row[field['knack']]}\n\n"
 
             except KeyError:
                 continue
 
-        elif KNACK_FIELDS[field]['handle'] == 'url_in_description':
-            # special url handler
-            description = f"{description}\nDTS URL: https://atd.knack.com/dts#service-requests/view-issue-details/{row[field]}\n"
+            github_issue[field["github"]] = new_value
 
-        elif "MAP_LABELS" in KNACK_FIELDS[field]['handle']:
-            # lookup the cooresponding label
-            label_name = KNACK_FIELDS[field]['handle'].split("LABELS_")[1]
-
+        elif field["method"] == "transform_merge":
             try:
-                github_issue['labels'].append(
-                    LABEL_MAPS[label_name][row[field]]
-                )
-
-            except KeyError:
-                continue
-        
-        elif "MAP_REPOS" in KNACK_FIELDS[field]['handle']:
-            # map the app name to a repo where the issue will be created
-            try:
-                if row[field]:
-                    app_name = row[field]
+                untransformed = row[field["knack"]]
 
             except KeyError:
                 continue
 
-            github_issue['repo'] = REPOS[app_name]
+            # get the transform function
+            transform_func = getattr(transforms, field["transform"])
+            transformed = transform_func(untransformed)
 
-        elif "MAP_ASSIGNEES" in KNACK_FIELDS[field]['handle']:
-            # map the assignee to github username
+            # now merge
+            old_value = github_issue[field["github"]]
+            new_value = f"{old_value} {field['knack']}: {transformed}\n\n"
+            github_issue[field["github"]] = new_value
+
+        elif field["method"] == "map_append":
+
             try:
-                if row[field]:
-                    assignee = row[field]
+                val_knack = row[field["knack"]]
 
             except KeyError:
                 continue
 
-            github_issue['assignee'] = ASSIGNEES[assignee]
+            val_mapped = field["map"][val_knack]
 
-        else:
-            # send the "handle" value as a key in the issue dict
+            github_issue[field["github"]].append(val_mapped)
+
+        elif field["method"] == "map":
+
             try:
-                github_issue[KNACK_FIELDS[field]['handle']] = row[field]
-            
+                val_knack = row[field["knack"]]
+
             except KeyError:
                 continue
 
-    github_issue['description'] = description
+            val_mapped = field["map"][val_knack]
+            github_issue[field["github"]] = val_mapped
+      
+        elif field["method"] == "copy":
+
+            try:
+                val_knack = row[field["knack"]]
+
+            except KeyError:
+                continue
+
+            github_issue[field["github"]] = val_knack
+
+    pdb.set_trace()
 
     prepared.append(github_issue)
 
 pdb.set_trace()
-
