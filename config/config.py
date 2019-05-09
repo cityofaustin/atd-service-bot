@@ -84,6 +84,7 @@ FIELDS = [
         "github": "labels",
         "required": False,
         "method": "map_append",
+        "splice_by_comma" : True,
         "map": {
             "App Support": "Team: Apps",
             "Geospatial": "Team: Geo",
@@ -96,6 +97,7 @@ FIELDS = [
         "github": "repo",
         "method": "map",
         "required": True,
+        "default" : "atd-data-tech",
         "map": {
             "AMANDA": "atd-amanda",
             "AMANDA - GIS Viewer": "atd-amanda",
@@ -138,6 +140,7 @@ FIELDS = [
         "github": "description",
         "required": True,
         "method": "transform_merge",
+        "rename" : "DTS URL",
         "transform": "app_url",
     },
     {
