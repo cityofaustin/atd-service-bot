@@ -1,28 +1,21 @@
-# TODO:
-# validator/checker
-# assignments
-# update knack issue with github link
-# udpate knack issue with migration status
-
 import pdb
 from pprint import pprint as print
 
 from github import Github
-from knackpy import Knack
+import knackpy
 
 from config.config import *
 from config.secrets import API_KEY, GITHUB_USER, GITHUB_PASSWORD
 import transforms
 
-# def validate_issue_payload(issue, field_definitions):
 
 def map_issue(issue, FIELDS):
-    
+
     github_issue = {
         "description": "",
         "labels": [],
         "title": "",
-        "assignee": None,
+        "assignee": "",
         "github_url": None,
         "knack_id": None,
         "repo": None,
@@ -54,14 +47,13 @@ def map_issue(issue, FIELDS):
             # now merge
             old_value = github_issue[field["github"]]
 
-
-            if field.get('rename'):
+            if field.get("rename"):
                 # rename the field label that will be formatted into the merge
                 new_value = f"{old_value}{field.get('rename')}: {transformed}\n\n"
 
             else:
                 new_value = f"{old_value}{field['knack']}: {transformed}\n\n"
-            
+
             github_issue[field["github"]] = new_value
 
         elif field["method"] == "map_append":
@@ -71,11 +63,11 @@ def map_issue(issue, FIELDS):
 
             except KeyError:
                 continue
-            
+
             if not val_knack:
                 # handle empty strings in knack data
                 continue
-            
+
             if field.get("splice_by_comma") and "," in val_knack:
                 # handle a field with multiple, comma-delimmited values
                 val_knack = val_knack.split(",")
@@ -85,9 +77,8 @@ def map_issue(issue, FIELDS):
 
             for val in val_knack:
                 val_mapped = field["map"][val]
-                
+
                 github_issue[field["github"]].append(val_mapped)
-            
 
         elif field["method"] == "map":
 
@@ -104,13 +95,13 @@ def map_issue(issue, FIELDS):
                 # skip empty strings in knack data
                 if field.get("default"):
                     github_issue[field["github"]] = field.get("default")
-                    
+
                 continue
-            
+
             val_mapped = field["map"][val_knack]
 
             github_issue[field["github"]] = val_mapped
-      
+
         elif field["method"] == "copy":
 
             try:
@@ -122,13 +113,13 @@ def map_issue(issue, FIELDS):
             github_issue[field["github"]] = val_knack
 
     return github_issue
-    
+
 
 def get_repo(g, repo, org="cityofaustin"):
     return g.get_repo(f"{org}/{repo}")
 
 
-kn = Knack(
+kn = knackpy.Knack(
     scene=KNACK_APP["scene"],
     view=KNACK_APP["view"],
     app_id=KNACK_APP["app_id"],
@@ -138,24 +129,50 @@ kn = Knack(
 
 prepared = {}
 
-count = 0
 for issue in kn.data:
 
     # turn knack issues into github iossues
     github_issue = map_issue(issue, FIELDS)
-    
+
     # organize issues by repo
-    repo = github_issue['repo']
-    
+    repo = github_issue["repo"]
+
     if repo not in prepared:
         prepared[repo] = []
 
     prepared[repo].append(github_issue)
 
-    # create github issues
-    # for repo in prepared.keys():
-    #     for issue in prepared[repo]:
-    #         print(issue['title'])
+g = Github(GITHUB_USER, GITHUB_PASSWORD)
 
-# g = Github(GITHUB_USER, GITHUB_PASSWORD)
-pdb.set_trace()
+responses = []
+
+# create github issues
+for repo_name in prepared.keys():
+
+    repo = get_repo(g, repo_name)
+
+    for issue in prepared[repo_name]:
+
+        result = repo.create_issue(
+            title=issue["title"],
+            labels=issue.get("labels"),
+            assignee=issue.get("assignee"),
+            body=issue["description"],
+        )
+
+        knack_record_update = {
+            "id": issue["knack_id"],
+            "field_367": result.number,  # github issuer number
+            "field_368": repo_name,  # repo name
+            "field_366": "Successful",  # github migration result
+        }
+
+        response = knackpy.record(
+            knack_record_update,
+            obj_key="object_6",
+            app_id=KNACK_APP["app_id"],
+            api_key=API_KEY,
+            method="update",
+        )
+
+        responses.append(response)
