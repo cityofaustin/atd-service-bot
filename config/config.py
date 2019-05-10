@@ -104,6 +104,7 @@ FIELDS = [
             "AMANDA - Portal": "atd-amanda",
             "CSR (311)": "atd-data-tech",
             "Data Tracker": "atd-knack-data-tracker",
+            "Dockless Mobility Explorer" : "atd-dockless-dataviz",
             "Finance and Purchasing Request System (Formerly O.P.R.A.S).": "atd-knack-finance-purchasing",
             "GISMAINT1": "atd-geospatial",
             "IMMPACT": "atd-geospatial",
