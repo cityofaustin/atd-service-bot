@@ -36,4 +36,4 @@ $ python migrate_comments.py
 
 Each SR note will be added to as a comment to the corresponding Github issue as comments.
 
-6. These scripts are idempotent, you can run then over and over again and any issue or comment that was successfully migrated will be ignored.
+6. These scripts are idempotent; you can run then over and over again and any issue or comment that was successfully migrated will be ignored.
