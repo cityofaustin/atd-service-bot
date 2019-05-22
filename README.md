@@ -14,7 +14,7 @@ Right now, the bot only knows how to migrate service requests on an ad-hoc basis
 - Install the packages specified in `requirements.txt` with
 
 ```bash
-`$ pip install -r requirements.txt`
+$ pip install -r requirements.txt
 ```
 
 3. Create a file named `secrets.py` following the template in `/config/secrets_template.py`
