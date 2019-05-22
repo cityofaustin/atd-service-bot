@@ -25,6 +25,15 @@ Right now, the bot only knows how to migrate service requests on an ad-hoc basis
 $ python migrate_comments.py
 ```
 
-This script will copy the service requests from the DTS portal as Github issues. The script will attempt to find an appropriate repository based on the `Application` information in the DTS portal. If no repo is found, issues with be created in the `atd-data-tech` repo. Labels will also be applied according to workgroup and service group. See `/config/config.py` for the complete field mapping.
+This script will copy the service requests from the DTS portal as Github issues. The script will attempt to find an appropriate repository based on the `Application` information in the DTS portal. If no repo is found, issues will be created in the `atd-data-tech` repo. Labels will also be applied according to workgroup and service group. See `/config/config.py` for the complete field mapping.
 
-5. 
+The script will also update each DTS portal issue with a URL to the Github issue, and it will update the DTS issue with `Github Migration Result` as `successful`.
+
+5. Migrate the service request notes to Github:
+```bash
+$ python migrate_comments.py
+```
+
+Each SR note will be added to as a comment to the corresponding Github issue as comments.
+
+6. These scripts are idempotent, you can run then over and over again and any issue or comment that was successfully migrated will be ignored.
