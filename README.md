@@ -22,7 +22,7 @@ $ pip install -r requirements.txt
 4. Migrate the service requests to Github:
 
 ```bash
-$ python migrate_comments.py
+$ python migrate_issues.py
 ```
 
 This script will copy the service requests from the DTS portal as Github issues. The script will attempt to find an appropriate repository based on the `Application` information in the DTS portal. If no repo is found, issues will be created in the `atd-data-tech` repo. Labels will also be applied according to workgroup and service group. See `/config/config.py` for the complete field mapping.
