@@ -1,153 +1,123 @@
 
 KNACK_APP = {
     "scene": "scene_127",
-    "view": "view_244",
+    "view": "view_248",
     "app_id": "595d00ebd315cc4cb98daff4",
-    "ref_obj": ["object_6"],
+    "ref_obj": ["object_24"],
 }
 
 FIELDS = [
     {
-        "knack": "Description",
+        "knack": "field_407",
         "github": "description",
         "method": "merge",
+    },  # name
+    {
+        "knack": "field_406",
+        "github": "description",
+        "method": "merge",
+    },  # email
+    {
+        "knack": "field_400",
+        "github": "title",
         "required": True,
+        "method": "copy",
+    },  # Describe the problem
+    {
+        "knack": "field_390",  # Division
+        "github": "labels",
+        "method": "map_append",
+        "required": False,
+        "map": {
+            "Active Transportation & Street Design": "Workgroup: ATSD",
+            "Arterial Management": "Workgroup: AMD",
+            "Data and Technology Services": "Workgroup: DTS",
+            "Finance and Administration": "Workgroup: Finance",
+            "Human Resources (Hr)": "Workgroup: HR",
+            "Office of the Director": "Workgroup: OOD",
+            "Office of Special Events": "Workgroup: OSE",
+            "Parking Enterprise": "Workgroup: PE",
+            "Parking Meters": "Workgroup: PE",
+            "PIO": "Workgroup: PIO",
+            "Right-of-Way (ROW)": "Workgroup: ROW",
+            "Signs and Markings": "Workgroup: SMB",
+            "Smart Mobility": "Workgroup: SM",
+            "Systems Development": "Workgroup: SDD",
+            "Transportation Engineering": "Workgroup: TE",
+            "Vision Zero": "Workgroup: VZ",
+            "Other": "Workgroup: Other",
+        },
     },
     {
-        "knack": "Request Date",
+        "knack": "field_404",  # Impact
+        "github": "labels",
+        "method": "map_append",
+        "required": False,
+        "map": {
+            "Severe — cannot perform work, no workaround": "Impact: 1-Severe",
+            "Major — can only perform work using a workaround": "Impact: 2-Major",
+            "Minor — can perform work, but could be easier or faster": "Impact: 3-Minor",
+        },
+    },
+    {"knack": "field_410", "github": "description", "method": "merge"},  # How soon do you need this?
+    {
+        "knack": "field_405",
+        "github": "description",
+        "method": "merge",
+    },  # Anything else we should know?
+    {
+        "knack": "field_398",  # What do you need help with?
+        "github": "labels",
+        "required": False,
+        "method": "map_append",
+        "map": {
+            "Bug Report — Something is not working": "Type: Bug Report",
+            "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
+            "GIS or Maps": "Type: Map Request",
+            "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
+        },
+    },
+    {
+        "knack": "field_399",
+        "github": "repo",
+        "method": "map",
+        "required": True,
+        "default": "atd-data-tech",
+        "map": {
+            "AMANDA": "atd-amanda",
+            "Data Tracker": "atd-knack-data-tracker",
+            "Finance & Purchasing": "atd-knack-finance-purchasing",
+            "Street Banners": "atd-knack-street-banner",
+            "Signs & Markings Operations": "atd-knack-signs-markings",
+            "ArcGIS" : "atd-geospatial"
+        },
+    },
+    {
+        "knack": "field_401",
+        "github": "description",
+        "method": "merge",
+    },  # url
+    {"knack": "field_403", "github": "description", "method": "merge"},  # Browser
+    {
+        "knack": "id",
+        "github": "description",
+        "required": True,
+        "method": "transform_merge",
+        "rename": "DTS URL",
+        "transform": "app_url",
+    },
+    {"knack": "id", "github": "knack_id", "required": True, "method": "copy"},
+    {
+        "knack": "field_388", # request ID
+        "github": "description",
+        "required": True,
+        "method": "merge",
+    },
+    {
+        "knack": "field_382", # request date
         "github": "description",
         "method": "transform_merge",
         "transform": "mills_to_timestamp",
         "required": False,
-    },
-    {
-        "knack": "Request ID",
-        "github": "description",
-        "required": True,
-        "method": "merge",
-    },
-    {"knack": "Status", "github": "description", "required": False, "method": "merge"},
-    {
-        "knack": "Customer Priority",
-        "github": "description",
-        "required": False,
-        "method": "merge",
-    },
-    {"knack": "Subject", "github": "title", "required": True, "method": "copy"},
-    {
-        "knack": "Division",
-        "github": "labels",
-        "method": "map_append",
-        "required": False,
-        "map": {
-            "ACTIVE TRANSPORTATION": "Workgroup: ATSD",
-            "ARTERIAL MANAGEMENT": "Workgroup: AMD",
-            "FINANCE AND ADMINISTRATION": "Workgroup: Finance",
-            "N/A": "Workgroup: Other",
-            "OFFICE OF THE DIRECTOR": "Workgroup: OOD",
-            "OFFICE OF SPECIAL EVENTS": "Workgroup: OSE",
-            "PARKING ENTERPRISE": "Workgroup: PE",
-            "PARKING METERS": "Workgroup: PE",
-            "PIO": "Workgroup: PIO",
-            "ROW": "Workgroup: ROW",
-            "SIGNS AND MARKINGS": "Workgroup: SMB",
-            "SYSTEMS DEVELOPMENT": "Workgroup: SDD",
-            "TRANSPORTATION ENGINEERING": "Workgroup: TE",
-            "SIGNS AND MARKINGS - SPECIAL PROJECT": "Workgroup: SMB",
-            "DATA AND TECHNOLOGY SERVICES": "Workgroup: DTS",
-            "Human Resources (HR)": "Workgroup: HR",
-        },
-    },
-    {
-        "knack": "Level of Effort",
-        "github": "description",
-        "method": "merge",
-        "required": False,
-    },
-    {
-        "knack": "Request Type",
-        "github": "labels",
-        "required": False,
-        "method": "map_append",
-        "map": {
-            "Bug Report": "Type: Bug Report",
-            "Enhancement Request": "Type: Enhancement",
-            "Map Request": "Type: Map Request",
-            "New Application": "Type: New Application",
-            "Other": "Type: Other",
-            "Report Request": "Type: Reports",
-            "Script / Data Automation": "Type: Other",
-        },
-    },
-    {
-        "knack": "Service Group(s)",
-        "github": "labels",
-        "required": False,
-        "method": "map_append",
-        "splice_by_comma" : True,
-        "map": {
-            "App Support": "Team: Apps",
-            "Geospatial": "Team: Geo",
-            "Infrastructure & Engineering": "Team: Dev",
-            "Professional Services": "Team: PM",
-        },
-    },
-    {
-        "knack": "Applications",
-        "github": "repo",
-        "method": "map",
-        "required": True,
-        "default" : "atd-data-tech",
-        "map": {
-            "AMANDA": "atd-amanda",
-            "AMANDA - GIS Viewer": "atd-amanda",
-            "AMANDA - Portal": "atd-amanda",
-            "CSR (311)": "atd-data-tech",
-            "Data Tracker": "atd-knack-data-tracker",
-            "Dockless Mobility Explorer" : "atd-dockless-dataviz",
-            "Finance and Purchasing Request System (Formerly O.P.R.A.S).": "atd-knack-finance-purchasing",
-            "GISMAINT1": "atd-geospatial",
-            "IMMPACT": "atd-geospatial",
-            "KITS": "atd-data-tech",
-            "Online Bike Map": "atd-geospatial",
-            "Open Data and Performance Hub": "transportation.austintexas.io",
-            "ROWPACT": "atd-geospatial",
-            "Signal Preventative Maintenance (Fulcrum)": "atd-data-tech",
-            "Street Banner Program Portal": "atd-knack-street-banner",
-            "Traffic Signal Assets Web App": "atd-geospatial",
-        },
-    },
-    {"knack": "Created By", "github": "description", "method": "merge"},
-    {
-        "knack": "Assigned to",
-        "github": "assignee",
-        "required": False,
-        "method": "map",
-        "map": {
-            "Alan De Anda": "alan-deanda",
-            "Amenity Applewhite": "amenity",
-            "Diana Martin": "dianamartin",
-            "Jaime McKeown": "jaime-mckeown",
-            "Joey Liang": "JoeyL6",
-            "John Clary": "johnclary",
-            "Mateo Clarke": "mateoclarke",
-            "Matt Stevens": "mstevens-atx",
-            "Tracy Linder": "TracyLinder",
-            "Billy Howland": "wchIV",
-        },
-    },
-    {
-        "knack": "id",
-        "github": "description",
-        "required": True,
-        "method": "transform_merge",
-        "rename" : "DTS URL",
-        "transform": "app_url",
-    },
-    {
-        "knack": "id",
-        "github": "knack_id",
-        "required": True,
-        "method": "copy",
     },
 ]

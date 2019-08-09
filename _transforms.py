@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 def mills_to_timestamp(mills):
     return datetime.fromtimestamp(mills / 1000)
 
