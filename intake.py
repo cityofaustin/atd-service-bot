@@ -1,22 +1,19 @@
 # TODO: handle "other" division, request type
 # TODO: document geospatial app selection importance
-# TODO: document why email/name are short text
+# TODO: document why email/name are short text (they're easier to handle in ETL?)
 # TODO: test: all apps, all request types, all divisions
 # TODO: and cli_args() for deployer
 # TODO: return records_processed for job logging
 # TODO: email confirmation messages
-# TODO: set IT support issues to close in github, setup email to scott < no, to complex. not sending to github
+# TODO: set IT support issues to close in github, setup email to scott < no, to complex. send to github as open?
 # TODO: Add workgroup + type to issue title, with truncated Description.
-# TODO: move outcome above workaround in issue description
-# TODO: hide "how soon do you need this" from feature
-# TODO: Change text on "How soon do you need this?"
-# TODO: move "How would you rate the impact" to the bottom
 # TODO: everything else: hide impact and need questions. and if need is "urgent" then map to "Impact 1: Severe"
-# TODO: change the "how soon do you need this drop-down to radio buttons"
-# TODO: leave application seletor and URL on "everything else"
+# TODO: leave application selector and URL on "everything else"
 # TODO: don't assign amenity to amanda issues except severe
-# TODO: instead of updating knackpy records by object, submit a form that triggers an email. Wow!
 # TODO: add credentials to 1pass
+# TODO: what to do if an issue is created in github but the knack update fails? this would lead to duplicate github issues. possibly an edge case and we handle it by deleting dupes from github ad hoc. we could post an intermediary status to knack before creating github issue. something like "in progress" and then manual interventation is required to address these.
+# GIS, IT Support, and "Something Else" are the same form rules, different routing/labeling
+# test labeling for "something else"
 
 import pdb
 from pprint import pprint as print
@@ -181,10 +178,25 @@ def map_issue(issue, fields, knack_field_map):
 
 
 def assign_to_someone(issue, repo):
+    '''
+    - Any atd-geospatial issue assigned to Jaime
+    - Any atd-amanda issue assigned to Tracy
+    - All other issues assigned to Amenity
+    - Any "severe" issues also assigned to amenity & tracy
+    '''
     if repo == "atd-geospatial":
-        issue["assignee"] = "jaime-mckeown"
+        issue["assignee"] = ["jaime-mckeown"]
+    
+    elif repo == "atd-amanda":
+        issue["assignee"] = ["TracyLinder"]
+    
     else:
-        issue["assignee"] = ["amenity", "TracyLinder"]
+        issue["assignee"] = ["amenity"]
+
+    if any("severe" in label.lower() for label in issue["labels"]):
+        issue["assignee"].extend(["TracyLinder", "amenity"])
+        # remove possible duplicate assignee names
+        issue["assignee"] = list(set(issue["assignee"]))
 
     return issue
 
@@ -212,7 +224,12 @@ def form_submit(token, app_id, scene, view, payload):
 
     res = requests.put(url, headers=headers, json=payload)
 
-    res.raise_for_status()
+    try:
+        res.raise_for_status()
+
+    except:
+        # merge request response error w/ payload so that we can track down the bad record
+        raise Exception(f"Knack Form Submit error for payload {payload}. Error: {res.text}")
 
     return res
 
@@ -242,6 +259,8 @@ def main():
 
         github_issue = assign_to_someone(github_issue, repo)
 
+        pdb.set_trace()
+
         if repo not in prepared:
             prepared[repo] = []
 
@@ -258,23 +277,22 @@ def main():
 
         for issue in prepared[repo_name]:
 
-            # result = repo.create_issue(
-            #     title=issue["title"],
-            #     labels=issue.get("labels"),
-            #     assignees=issue.get("assignee"),
-            #     body=issue["description"],
-            # )
+            result = repo.create_issue(
+                title=issue["title"],
+                labels=issue.get("labels"),
+                assignees=issue.get("assignee"),
+                body=issue["description"],
+            )
 
             knack_payload = {
                 "id": issue["knack_id"],
-                # "field_394": result.number,  # github issue number
+                "field_394": result.number,  # github issue number
                 "field_395": issue["repo"],  # repo
                 "field_392": "Sent",  # github transmission status
             }
 
             # update knack record as "Sent" using form API, which will
             # trigger an email notificaiton
-            pdb.set_trace()
 
             token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP["app_id"])
 
@@ -285,8 +303,6 @@ def main():
                 KNACK_APP["api_form"]["view"],
                 knack_payload,
             )
-
-            pdb.set_trace()
 
             responses.append(response)
 
