@@ -177,6 +177,23 @@ def map_issue(issue, fields, knack_field_map):
     return github_issue
 
 
+def format_title(issue):
+    # Format is: `([Urgent?]) [Truncated Title]...`
+
+    urgent = ""
+
+    if len(issue["title"]) > 100:
+        issue["title"] = issue["title"][0:100] + "..."
+
+    if any("severe" in label.lower() for label in issue["labels"]):
+        # we want to include "Urgent" in the title for "Impact: Severe" issues
+        urgent = "(Urgent) "
+
+    issue["title"] = f"{urgent}{issue['title']}"
+    
+    return issue
+
+
 def assign_to_someone(issue, repo):
     """
     - Any atd-geospatial issue assigned to Jaime
@@ -258,10 +275,10 @@ def main():
 
         # organize issues by repo
         repo = github_issue["repo"]
+        
+        github_issue = format_title(github_issue)
 
         github_issue = assign_to_someone(github_issue, repo)
-
-        pdb.set_trace()
 
         if repo not in prepared:
             prepared[repo] = []
