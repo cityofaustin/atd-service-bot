@@ -30,6 +30,7 @@ FIELDS = [
         "knack": "field_400",
         "github": "title",
         "method": "copy",
+        "format" : "none"
     },  # Describe the problem
     {
         "knack": "field_414",
@@ -96,7 +97,7 @@ FIELDS = [
             "Active Transportation & Street Design": "Workgroup: ATSD",
             "Arterial Management": "Workgroup: AMD",
             "Data & Technology Services": "Workgroup: DTS",
-            "Finance and Administration": "Workgroup: Finance",
+            "Finance & Administration": "Workgroup: Finance",
             "Human Resources": "Workgroup: HR",
             "Office of the Director": "Workgroup: OOD",
             "Office of Special Events": "Workgroup: OSE",
@@ -104,7 +105,7 @@ FIELDS = [
             "Parking Meters": "Workgroup: PE",
             "Public Information Office": "Workgroup: PIO",
             "Right-of-Way": "Workgroup: ROW",
-            "Signs and Markings": "Workgroup: SMB",
+            "Signs & Markings": "Workgroup: SMB",
             "Smart Mobility": "Workgroup: SM",
             "Systems Development": "Workgroup: SDD",
             "Transportation Engineering": "Workgroup: TE",
