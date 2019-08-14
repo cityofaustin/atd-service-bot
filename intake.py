@@ -5,11 +5,6 @@
 # TODO: and cli_args() for deployer
 # TODO: return records_processed for job logging
 # TODO: email confirmation messages
-# TODO: set IT support issues to close in github, setup email to scott < no, to complex. send to github as open?
-# TODO: Add workgroup + type to issue title, with truncated Description.
-# TODO: everything else: hide impact and need questions. and if need is "urgent" then map to "Impact 1: Severe"
-# TODO: leave application selector and URL on "everything else"
-# TODO: don't assign amenity to amanda issues except severe
 # TODO: add credentials to 1pass
 # TODO: what to do if an issue is created in github but the knack update fails? this would lead to duplicate github issues. possibly an edge case and we handle it by deleting dupes from github ad hoc. we could post an intermediary status to knack before creating github issue. something like "in progress" and then manual interventation is required to address these.
 # GIS, IT Support, and "Something Else" are the same form rules, different routing/labeling

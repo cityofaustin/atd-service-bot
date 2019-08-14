@@ -200,5 +200,10 @@ FIELDS = [
         "transform": "parse_attachment_url",
         "format": "no_label",
     },
-    {"knack": "id", "github": "knack_id", "method": "copy", "format" : "none"}
+    {"knack": "id", "github": "knack_id", "method": "copy", "format" : "none"},
+    {
+        "knack": "field_388",  # request ID
+        "github": "description",
+        "method": "merge",
+    }
 ]
