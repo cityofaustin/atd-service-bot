@@ -178,18 +178,18 @@ def map_issue(issue, fields, knack_field_map):
 
 
 def assign_to_someone(issue, repo):
-    '''
+    """
     - Any atd-geospatial issue assigned to Jaime
     - Any atd-amanda issue assigned to Tracy
     - All other issues assigned to Amenity
     - Any "severe" issues also assigned to amenity & tracy
-    '''
+    """
     if repo == "atd-geospatial":
         issue["assignee"] = ["jaime-mckeown"]
-    
+
     elif repo == "atd-amanda":
         issue["assignee"] = ["TracyLinder"]
-    
+
     else:
         issue["assignee"] = ["amenity"]
 
@@ -229,7 +229,9 @@ def form_submit(token, app_id, scene, view, payload):
 
     except:
         # merge request response error w/ payload so that we can track down the bad record
-        raise Exception(f"Knack Form Submit error for payload {payload}. Error: {res.text}")
+        raise Exception(
+            f"Knack Form Submit error for payload {payload}. Error: {res.text}"
+        )
 
     return res
 
