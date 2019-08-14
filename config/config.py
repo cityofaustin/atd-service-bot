@@ -31,7 +31,13 @@ FIELDS = [
         "github": "title",
         "method": "copy",
         "format" : "none"
-    },  # Describe the problem
+    },  # Describe the problem (duplicated because this goes into the title and decsription body)
+    {
+        "knack": "field_400",
+        "github": "description",
+        "method": "merge",
+        "format" : "quote_text"
+    },  # Describe the problem (duplicated because this goes into the title and decsription body)
     {
         "knack": "field_414",
         "github": "description",
