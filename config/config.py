@@ -194,29 +194,11 @@ FIELDS = [
     },  # url
     {"knack": "field_403", "github": "description", "method": "merge"},  # Browser
     {
-        "knack": "id",
-        "github": "description",
-        "method": "transform_merge",
-        "rename": "DTS URL",
-        "transform": "app_url",
-    },
-    {
         "knack": "field_402",
         "github": "description",
         "method": "transform_merge",
         "transform": "parse_attachment_url",
         "format": "no_label",
     },
-    {"knack": "id", "github": "knack_id", "method": "copy", "format" : "none"},
-    {
-        "knack": "field_388",  # request ID
-        "github": "description",
-        "method": "merge",
-    },
-    {
-        "knack": "field_382",  # request date
-        "github": "description",
-        "method": "transform_merge",
-        "transform": "mills_to_timestamp",
-    },
+    {"knack": "id", "github": "knack_id", "method": "copy", "format" : "none"}
 ]
