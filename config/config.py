@@ -32,17 +32,61 @@ FIELDS = [
         "method": "copy",
     },  # Describe the problem
     {
-        "knack": "field_412",
+        "knack": "field_414",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    },  # Describe workarounds
+    },  # Solution in mind   
+    {
+        "knack": "field_415",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+    },  # How will we know that our solution is successful?
+    {
+        "knack": "field_417",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+        # users
+    },
+    {
+        "knack": "field_418",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+    }, # stakeholders
+    {
+        "knack": "field_419",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+    }, # sponsors
+    {
+        "knack": "field_420",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+    }, # sd23
+    {
+        "knack": "field_421",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+    }, # asmp
     {
         "knack": "field_411",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
     },  # Describe an outcome you'd like to see
+    {
+        "knack": "field_412",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+    },  # Describe workarounds
+
     {
         "knack": "field_390",  # Division
         "github": "labels",
@@ -51,15 +95,15 @@ FIELDS = [
         "map": {
             "Active Transportation & Street Design": "Workgroup: ATSD",
             "Arterial Management": "Workgroup: AMD",
-            "Data and Technology Services": "Workgroup: DTS",
+            "Data & Technology Services": "Workgroup: DTS",
             "Finance and Administration": "Workgroup: Finance",
-            "Human Resources (Hr)": "Workgroup: HR",
+            "Human Resources": "Workgroup: HR",
             "Office of the Director": "Workgroup: OOD",
             "Office of Special Events": "Workgroup: OSE",
             "Parking Enterprise": "Workgroup: PE",
             "Parking Meters": "Workgroup: PE",
-            "PIO": "Workgroup: PIO",
-            "Right-of-Way (ROW)": "Workgroup: ROW",
+            "Public Information Office": "Workgroup: PIO",
+            "Right-of-Way": "Workgroup: ROW",
             "Signs and Markings": "Workgroup: SMB",
             "Smart Mobility": "Workgroup: SM",
             "Systems Development": "Workgroup: SDD",
@@ -93,6 +137,7 @@ FIELDS = [
         "knack": "field_410",
         "github": "description",
         "method": "merge",
+        "format": "quote_text",
     },  # How soon do you need this?
     {
         "knack": "field_405",
@@ -100,6 +145,12 @@ FIELDS = [
         "method": "merge",
         "format": "quote_text",
     },  # Anything else we should know?
+    {
+        "knack": "field_416",
+        "github": "description",
+        "method": "merge",
+        "format": "quote_text",
+    },  # How have other divisions/departments/cities addressed similar challenges? 
     {
         "knack": "field_398",  # What do you need help with?
         "github": "labels",
@@ -109,7 +160,8 @@ FIELDS = [
             "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
             "GIS or Maps": "Type: Map Request",
             "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
-            "IT Support - Help with licenses, accounts, hardware, etc." : "Type: IT Support"
+            "IT Support — Help with licenses, accounts, hardware, etc." : "Type: IT Support",
+            "Something Else" : "Type: Other"
         },
     },
     {
