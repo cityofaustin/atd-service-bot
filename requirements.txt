@@ -1,2 +1,4 @@
+atd-args-util
 knackpy
 pygithub
+requests
