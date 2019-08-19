@@ -127,7 +127,6 @@ FIELDS = [
             "Severe — cannot perform work, no workaround": "Impact: 1-Severe",
             "Major — can only perform work using a workaround": "Impact: 2-Major",
             "Minor — can perform work, but could be easier or faster": "Impact: 3-Minor",
-            "Unsure" : ""
         },
     },
     {
@@ -165,7 +164,7 @@ FIELDS = [
         "map": {
             "Bug Report — Something is not working": "Type: Bug Report",
             "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
-            "GIS or Maps": "Type: Map Request",
+            "GIS or Maps": "Service: Geo",
             "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
             "IT Support — Help with licenses, accounts, hardware, etc." : "Type: IT Support",
             "Something Else" : "Type: Other"
