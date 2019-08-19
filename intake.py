@@ -4,7 +4,13 @@
 # TODO: return records_processed for job logging
 # TODO: add credentials to 1pass
 # TODO: add scott as email recip
-# TODO: move alert emails to API form submit so github issue is available
+############################################################
+############################################################
+############################################################
+############################################################
+# TODO: assign both amenity and tracy project issues and "something else" issues
+# TODO: don't label "type: map request" for GIS. instead label "service: geo"
+
 
 import pdb
 from pprint import pprint as print
@@ -124,7 +130,8 @@ def map_issue(issue, fields, knack_field_map):
                 val_knack = [val_knack]
 
             for val in val_knack:
-                val_mapped = field["map"][val]
+
+                val_mapped = field["map"].get(val)
 
                 if val_mapped:
                     github_issue[field["github"]].append(val_mapped)
