@@ -1,18 +1,9 @@
 # TODO: document geospatial app selection importance
 # TODO: document why email/name are short text (they're easier to handle in ETL?)
-# TODO: and cli_args() for deployer
-# TODO: return records_processed for job logging
 # TODO: add credentials to 1pass
 # TODO: add scott as email recip
-############################################################
-############################################################
-############################################################
-############################################################
-# TODO: assign both amenity and tracy project issues and "something else" issues
 
-import pdb
-from pprint import pprint as print
-
+import argutil
 from github import Github
 import knackpy
 import requests
@@ -26,6 +17,17 @@ from config.secrets import (
     KNACK_PASSWORD,
 )
 import _transforms
+
+
+def cli_args():
+
+    parser = argutil.get_parser(
+        "intake.py", "Process new service requests from DTS Portal"
+    )
+
+    args = parser.parse_args()
+
+    return args
 
 
 def get_service_requests(scene, view, ref_obj, app_id, api_key):
@@ -258,6 +260,8 @@ def form_submit(token, app_id, scene, view, payload):
 
 def main():
 
+    args = cli_args()
+
     issues = get_service_requests(
         KNACK_APP["api_view"]["scene"],
         KNACK_APP["api_view"]["view"],
@@ -293,6 +297,7 @@ def main():
     responses = []
 
     # create github issues
+
     for repo_name in prepared.keys():
 
         repo = get_repo(g, repo_name)
@@ -327,5 +332,7 @@ def main():
 
             responses.append(response)
 
+    return len(responses)
 
-main()
+if __name__ == "__main__":
+    main()
