@@ -1,15 +1,8 @@
 
 KNACK_APP = {
     "app_id": "595d00ebd315cc4cb98daff4",
-    "api_view" : {
-        "scene": "scene_127",
-        "view": "view_248",
-        "ref_obj": ["object_24"],
-    },
-    "api_form" : {
-        "scene" : "scene_131",
-        "view" : "view_252"
-    }
+    "api_view": {"scene": "scene_127", "view": "view_248", "ref_obj": ["object_24"]},
+    "api_form": {"scene": "scene_131", "view": "view_252"},
 }
 
 
@@ -30,20 +23,20 @@ FIELDS = [
         "knack": "field_400",
         "github": "title",
         "method": "copy",
-        "format" : "none"
+        "format": "none",
     },  # Describe the problem (duplicated because this goes into the title and decsription body)
     {
         "knack": "field_400",
         "github": "description",
         "method": "merge",
-        "format" : "quote_text"
+        "format": "quote_text",
     },  # Describe the problem (duplicated because this goes into the title and decsription body)
     {
         "knack": "field_414",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    },  # Solution in mind   
+    },  # Solution in mind
     {
         "knack": "field_415",
         "github": "description",
@@ -62,25 +55,25 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    }, # stakeholders
+    },  # stakeholders
     {
         "knack": "field_419",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    }, # sponsors
+    },  # sponsors
     {
         "knack": "field_420",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    }, # sd23
+    },  # sd23
     {
         "knack": "field_421",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    }, # asmp
+    },  # asmp
     {
         "knack": "field_411",
         "github": "description",
@@ -93,7 +86,6 @@ FIELDS = [
         "method": "merge",
         "format": "quote_text",
     },  # Describe workarounds
-
     {
         "knack": "field_390",  # Division
         "github": "labels",
@@ -156,7 +148,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    },  # How have other divisions/departments/cities addressed similar challenges? 
+    },  # How have other divisions/departments/cities addressed similar challenges?
     {
         "knack": "field_398",  # What do you need help with?
         "github": "labels",
@@ -166,8 +158,8 @@ FIELDS = [
             "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
             "GIS or Maps": "Service: Geo",
             "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
-            "IT Support — Help with licenses, accounts, hardware, etc." : "Type: IT Support",
-            "Something Else" : "Type: Other"
+            "IT Support — Help with licenses, accounts, hardware, etc.": "Type: IT Support",
+            "Something Else": "Type: Other",
         },
     },
     {
@@ -199,12 +191,8 @@ FIELDS = [
         "transform": "parse_attachment_url",
         "format": "no_label",
     },
-    {"knack": "id", "github": "knack_id", "method": "copy", "format" : "none"},
-    {
-        "knack": "field_388",  # request ID
-        "github": "description",
-        "method": "merge",
-    }
+    {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
+    {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
 ]
 
 ASSIGNEES = {
@@ -213,10 +201,10 @@ ASSIGNEES = {
     # New Project (aka, New Application) and "Something Else" issues to amenity & tracy
     # Severe/urgent issues assigned to amenity & tracy
     # everything else to amenity
-    "severe_urgent" : ["TracyLinder", "amenity"],
-    "amanda" : ["TracyLinder"],
-    "gis" : ["jaime-mckeown"],
-    "new_projects" : ["TracyLinder", "amenity"],
-    "type_other" : ["TracyLinder", "amenity"],
-    "catch_all" : ["amenity"]
+    "severe_urgent": ["TracyLinder", "amenity"],
+    "amanda": ["TracyLinder"],
+    "gis": ["jaime-mckeown"],
+    "new_projects": ["TracyLinder", "amenity"],
+    "type_other": ["TracyLinder", "amenity"],
+    "catch_all": ["amenity"],
 }

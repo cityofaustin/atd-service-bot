@@ -187,7 +187,7 @@ def format_title(issue):
         urgent = "(Urgent) "
 
     issue["title"] = f"{urgent}{issue['title']}"
-    
+
     return issue
 
 
@@ -196,7 +196,7 @@ def assign_to_someone(issue, repo, assignees):
     Assign issue to someone based on issue attributes. See config for
     rule definitions.
     """
-    
+
     issue["assignee"] = []
 
     if repo == "atd-geospatial":
@@ -213,7 +213,7 @@ def assign_to_someone(issue, repo, assignees):
 
     if any("type: new application" in label.lower() for label in issue["labels"]):
         issue["assignee"].extend(ASSIGNEES["new_projects"])
-    
+
     if any("severe" in label.lower() for label in issue["labels"]):
         issue["assignee"].extend(ASSIGNEES["severe_urgent"])
 
@@ -282,7 +282,7 @@ def main():
 
         # organize issues by repo
         repo = github_issue["repo"]
-        
+
         github_issue = format_title(github_issue)
 
         github_issue = assign_to_someone(github_issue, repo, ASSIGNEES)
@@ -333,6 +333,7 @@ def main():
             responses.append(response)
 
     return len(responses)
+
 
 if __name__ == "__main__":
     main()
