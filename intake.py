@@ -9,8 +9,6 @@
 ############################################################
 ############################################################
 # TODO: assign both amenity and tracy project issues and "something else" issues
-# TODO: don't label "type: map request" for GIS. instead label "service: geo"
-
 
 import pdb
 from pprint import pprint as print
@@ -19,7 +17,7 @@ from github import Github
 import knackpy
 import requests
 
-from config.config import KNACK_APP, FIELDS
+from config.config import ASSIGNEES, KNACK_APP, FIELDS
 from config.secrets import (
     API_KEY,
     GITHUB_USER,
@@ -47,7 +45,6 @@ def map_issue(issue, fields, knack_field_map):
         "github_url": None,
         "knack_id": None,
         "repo": None,
-        "state": "Closed",
     }
 
     for field in fields:
@@ -192,26 +189,34 @@ def format_title(issue):
     return issue
 
 
-def assign_to_someone(issue, repo):
+def assign_to_someone(issue, repo, assignees):
     """
-    - Any atd-geospatial issue assigned to Jaime
-    - Any atd-amanda issue assigned to Tracy
-    - All other issues assigned to Amenity
-    - Any "severe" issues also assigned to amenity & tracy
+    Assign issue to someone based on issue attributes. See config for
+    rule definitions.
     """
+    
+    issue["assignee"] = []
+
     if repo == "atd-geospatial":
-        issue["assignee"] = ["jaime-mckeown"]
+        issue["assignee"].extend(ASSIGNEES["gis"])
 
     elif repo == "atd-amanda":
-        issue["assignee"] = ["TracyLinder"]
+        issue["assignee"].extend(ASSIGNEES["gis"])
 
     else:
-        issue["assignee"] = ["amenity"]
+        issue["assignee"].extend(ASSIGNEES["catch_all"])
 
+    if any("type: other" in label.lower() for label in issue["labels"]):
+        issue["assignee"].extend(ASSIGNEES["type_other"])
+
+    if any("type: new application" in label.lower() for label in issue["labels"]):
+        issue["assignee"].extend(ASSIGNEES["new_projects"])
+    
     if any("severe" in label.lower() for label in issue["labels"]):
-        issue["assignee"].extend(["TracyLinder", "amenity"])
-        # remove possible duplicate assignee names
-        issue["assignee"] = list(set(issue["assignee"]))
+        issue["assignee"].extend(ASSIGNEES["severe_urgent"])
+
+    # remove possible duplicate assignee names
+    issue["assignee"] = list(set(issue["assignee"]))
 
     return issue
 
@@ -276,7 +281,7 @@ def main():
         
         github_issue = format_title(github_issue)
 
-        github_issue = assign_to_someone(github_issue, repo)
+        github_issue = assign_to_someone(github_issue, repo, ASSIGNEES)
 
         if repo not in prepared:
             prepared[repo] = []
@@ -293,7 +298,6 @@ def main():
         repo = get_repo(g, repo_name)
 
         for issue in prepared[repo_name]:
-
             result = repo.create_issue(
                 title=issue["title"],
                 labels=issue.get("labels"),
