@@ -1,7 +1,16 @@
-# TODO: document geospatial app selection importance
-# TODO: document why email/name are short text (they're easier to handle in ETL?)
-# TODO: add credentials to 1pass
-# TODO: add scott as email recip
+"""
+Intake.py — Create github issues from service requests received via the the knack-based DTS portal.
+
+Before you modify this app! Successful processing is contingent on coded values in the Knack app, as well as our label definitions on github.
+
+You must up the `config/config.py` if you change any of these things in the DTS Knack app:
+- Workgroup names
+- Any pre-defined choice-list options (impact, need, application, workgroup, etc)
+
+...or if you change any of these things on github:
+- repo names
+- labels
+"""
 
 import argutil
 from github import Github
