@@ -2,9 +2,7 @@
 # TODO: document why email/name are short text (they're easier to handle in ETL?)
 # TODO: and cli_args() for deployer
 # TODO: return records_processed for job logging
-# TODO: email confirmation messages
 # TODO: add credentials to 1pass
-# TODO: what to do if an issue is created in github but the knack update fails? this would lead to duplicate github issues. possibly an edge case and we handle it by deleting dupes from github ad hoc. we could post an intermediary status to knack before creating github issue. something like "in progress" and then manual interventation is required to address these.
 # TODO: add scott as email recip
 # TODO: move alert emails to API form submit so github issue is available
 
