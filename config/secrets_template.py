@@ -2,3 +2,5 @@
 API_KEY = "abc123"
 GITHUB_USER ="mygithubusername"
 GITHUB_PASSWORD = "thisisnotapassword"
+KNACK_USERNAME = "suzy.q@austintexas.gov"
+KNACK_PASSWORD = "verylongandsecureknackpasswordforsecuritysafety"
