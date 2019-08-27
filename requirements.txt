@@ -1,4 +1,8 @@
 atd-args-util
+atd-email-util
+atd-jobs-util
+atd-log-util
 knackpy
 pygithub
+pyyaml
 requests
