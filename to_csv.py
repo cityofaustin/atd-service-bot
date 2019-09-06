@@ -7,10 +7,27 @@ import requests
 from config.secrets import ZENHUB_ACCESS_TOKEN
 
 def get_github_issues(url, labels=None, state="all", per_page=100):
-    res = requests.get(
-        url, params={"labels": labels, "state": state, "per_page": per_page}
-    )
-    res.raise_for_status()
+
+    data = []
+
+    page = 1
+
+    while True:
+        
+        res = requests.get(
+            url, params={"labels": labels, "state": state, "per_page": per_page, "page" : page}
+        )
+    
+        res.raise_for_status()
+
+        data.extend(res.json())
+
+        # pagination logic
+        if len(res.json()) == per_page:
+            page += 1
+        else:
+            break
+
     return res.json()
 
 
