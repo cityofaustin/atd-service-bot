@@ -6,7 +6,9 @@ import requests
 
 from config.secrets import ZENHUB_ACCESS_TOKEN
 
-def get_github_issues(url, labels=None, state="all", per_page=100):
+from config.repos import REPO_LIST
+
+def get_github_issues(url, labels=None, state="open", per_page=100):
 
     data = []
 
@@ -47,7 +49,8 @@ def parse_issue(issue):
     labels = issue.get("labels")
     labels = [label["name"] for label in labels]
     number = issue.get("number")
-    return {"number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body}
+    repo = issue.get("repo")
+    return {"number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body, "repo": repo}
 
 
 def parse_labels(labels):
@@ -80,21 +83,34 @@ def drop_prefix(val, prefix):
 def main():
     csv_data = []
 
-    GITHUB_ENDPOINT = "https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
+    issues = []
+    for repo in REPO_LIST:
+        # iterate through all the repos to get issuse of interest
+        repo_name = repo.get("name")
 
-    # 140626918 = atd-data-tech repo
-    ZENHUB_ENDPOINT = "https://api.zenhub.io/p1/repositories/140626918/issues/"
+        github_endpoint = f"https://api.github.com/repos/cityofaustin/{repo_name}/issues"
 
-    FIELDNAMES = ["number", "title", "pipeline", "workgroup", "type", "project", "body"]
+        ZENHUB_ENDPOINT = f"https://api.zenhub.io/p1/repositories/{repo['id']}/issues/"
 
-    # get all "index" issues (aka, projects)
-    issues = get_github_issues(GITHUB_ENDPOINT, labels="Index")
+        print(repo.get("name"))
 
-    # get all feature issues
-    issues.extend(get_github_issues(GITHUB_ENDPOINT, labels="Type: Feature"))
+        '''
+        nixing this index-specific query for now. if we want closed Index issues, we'll need to do this
+        and also remove dupes from the existing query
 
-    # get all enhancement issues
-    issues.extend(get_github_issues(GITHUB_ENDPOINT, labels="Type: Enhancement"))
+        if repo.get("name") == "atd-data-tech":
+            # this is the only repo that should have "Index" issues (aka, Projects),
+            # and we want all of them (including closed)
+            issues.extend(get_github_issues(github_endpoint, labels="Index", state="all"))
+        '''
+
+        # get all open issues
+        append_issues = get_github_issues(github_endpoint)
+
+        for issue in append_issues:
+            issue["repo"] = repo_name
+        
+        issues.extend(append_issues)
 
     for issue in issues:
         print(issue.get("number"))
@@ -122,6 +138,8 @@ def main():
         csv_data.append(csv_issue)
 
     with open("projects.csv", "w") as fout:
+        
+        FIELDNAMES = ["number", "title", "pipeline", "workgroup", "type", "project", "body", "repo"]
 
         writer = csv.DictWriter(fout, fieldnames=FIELDNAMES)
 
