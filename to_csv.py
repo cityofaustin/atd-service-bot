@@ -1,14 +1,15 @@
 import csv
+from multiprocessing.dummy import Pool
 import pdb
 from pprint import pprint
 
 import requests
 
-from config.secrets import ZENHUB_ACCESS_TOKEN
-
+from config.secrets import ZENHUB_ACCESS_TOKEN, GITHUB_PASSWORD, GITHUB_USER
 from config.repos import REPO_LIST
 
-def get_github_issues(url, labels=None, state="open", per_page=100):
+
+def get_github_issues(url, auth, labels=None, state="open", per_page=100):
 
     data = []
 
@@ -17,9 +18,11 @@ def get_github_issues(url, labels=None, state="open", per_page=100):
     while True:
         
         res = requests.get(
-            url, params={"labels": labels, "state": state, "per_page": per_page, "page" : page}
+            url,
+            auth=auth,
+            params={"labels": labels, "state": state, "per_page": per_page, "page" : page}
         )
-    
+        
         res.raise_for_status()
 
         data.extend(res.json())
@@ -33,11 +36,46 @@ def get_github_issues(url, labels=None, state="open", per_page=100):
     return res.json()
 
 
+def async_get_zenhub_issues(issue):
+    # async wrapper to get zenhub issues
+    print(issue.get("number"))
+
+    ZENHUB_ENDPOINT = f"https://api.zenhub.io/p1/repositories/{issue['repo_id']}/issues/"
+
+    # fetch zenhub issue data
+    zenhub_issue = get_zenhub_issue(
+        ZENHUB_ENDPOINT, ZENHUB_ACCESS_TOKEN, issue["number"]
+    )
+
+    if not zenhub_issue:
+        return None
+
+    # add zenhub pipeline to github issue object
+    try:
+        issue["pipeline"] = zenhub_issue["pipeline"]["name"]
+
+    except KeyError:
+        # closed issues do not have a zenhub pipeline :(
+        issue["pipeline"] = "Closed"
+
+    return issue
+
+
 def get_zenhub_issue(url, token, issue_no):
     url = f"{url}{issue_no}"
     params = {"access_token": token}
     res = requests.get(url, params=params)
-    res.raise_for_status()
+    
+    try:
+        res.raise_for_status()
+    
+    except:
+        
+        # handle an edge cas where an issue is not found in zenub
+        if res.status_code == 404:
+            print(f"not found: {issue_no}")
+            return None
+
     return res.json()
 
 
@@ -49,7 +87,7 @@ def parse_issue(issue):
     labels = issue.get("labels")
     labels = [label["name"] for label in labels]
     number = issue.get("number")
-    repo = issue.get("repo")
+    repo = issue.get("repo_name")
     return {"number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body, "repo": repo}
 
 
@@ -81,16 +119,18 @@ def drop_prefix(val, prefix):
 
 
 def main():
+    
+    issues = []
+
     csv_data = []
 
-    issues = []
     for repo in REPO_LIST:
         # iterate through all the repos to get issuse of interest
         repo_name = repo.get("name")
 
-        github_endpoint = f"https://api.github.com/repos/cityofaustin/{repo_name}/issues"
+        repo_id = repo.get("id")
 
-        ZENHUB_ENDPOINT = f"https://api.zenhub.io/p1/repositories/{repo['id']}/issues/"
+        github_endpoint = f"https://api.github.com/repos/cityofaustin/{repo_name}/issues"
 
         print(repo.get("name"))
 
@@ -105,29 +145,20 @@ def main():
         '''
 
         # get all open issues
-        append_issues = get_github_issues(github_endpoint)
+        append_issues = get_github_issues(github_endpoint, (GITHUB_USER, GITHUB_PASSWORD))
 
+        # and repo info to each issue
         for issue in append_issues:
-            issue["repo"] = repo_name
+            issue["repo_name"] = repo_name
+            issue["repo_id"] = repo_id
         
         issues.extend(append_issues)
 
+    with Pool(processes=4) as pool:
+        # async get zenhub pipeline attributes
+        issues = pool.map(async_get_zenhub_issues, issues)
+
     for issue in issues:
-        print(issue.get("number"))
-
-        # fetch zenhub issue data
-        zenhub_issue = get_zenhub_issue(
-            ZENHUB_ENDPOINT, ZENHUB_ACCESS_TOKEN, issue["number"]
-        )
-
-        # add zenhub pipeline to github issue object
-        try:
-            issue["pipeline"] = zenhub_issue["pipeline"]["name"]
-
-        except KeyError:
-            # closed issues do not have a zenhub pipeline :(
-            issue["pipeline"] = "Closed"
-
         # prepare issue object for csv output
         csv_issue = parse_issue(issue)
 
