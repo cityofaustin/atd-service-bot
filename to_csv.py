@@ -1,7 +1,15 @@
+'''
+TODO:
+- sleep to avoid zenhub rate limit (100 per minute)
+- milestone
+- estimate
+'''
+
 import csv
 from multiprocessing.dummy import Pool
 import pdb
 from pprint import pprint
+import time
 
 import requests
 
@@ -33,12 +41,17 @@ def get_github_issues(url, auth, labels=None, state="open", per_page=100):
         else:
             break
 
-    return res.json()
+    return data
 
 
 def async_get_zenhub_issues(issue):
-    # async wrapper to get zenhub issues
-    print(issue.get("number"))
+    '''
+    async wrapper to get zenhub issues
+    '''
+    
+    # rate limited to 100 requests per second
+    print(issue["number"])
+    time.sleep(3)
 
     ZENHUB_ENDPOINT = f"https://api.zenhub.io/p1/repositories/{issue['repo_id']}/issues/"
 
@@ -48,7 +61,9 @@ def async_get_zenhub_issues(issue):
     )
 
     if not zenhub_issue:
-        return None
+        print("NO ZENHUB")
+        issue["pipeline"] = "Unknown"
+        return issue
 
     # add zenhub pipeline to github issue object
     try:
@@ -64,17 +79,29 @@ def async_get_zenhub_issues(issue):
 def get_zenhub_issue(url, token, issue_no):
     url = f"{url}{issue_no}"
     params = {"access_token": token}
-    res = requests.get(url, params=params)
-    
+
     try:
+        res = requests.get(url, params=params)
+
         res.raise_for_status()
     
-    except:
-        
+    except requests.exceptions.Timeout:
+        print("timeout")
+        return None    
+
+    except Exception as e:    
         # handle an edge cas where an issue is not found in zenub
         if res.status_code == 404:
             print(f"not found: {issue_no}")
             return None
+
+        if res.status_code == 403:
+            print(res.text)
+            return None
+
+        else:
+            print(e)
+            return none
 
     return res.json()
 
@@ -157,6 +184,7 @@ def main():
     with Pool(processes=4) as pool:
         # async get zenhub pipeline attributes
         issues = pool.map(async_get_zenhub_issues, issues)
+
 
     for issue in issues:
         # prepare issue object for csv output
