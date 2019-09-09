@@ -45,7 +45,7 @@ def get_github_issues(url, auth, labels=None, state="open", per_page=100):
     return data
 
 
-def get_zenhub_issues(issue):
+def async_get_zenhub_issues(issue):
     '''
     async wrapper to get zenhub issues. after creating this method i learned that 
     zenhub limits requests to 100/min. so async is basically pointless. hence we
@@ -57,25 +57,31 @@ def get_zenhub_issues(issue):
     print(issue["number"])
     time.sleep(3)
 
-    ZENHUB_ENDPOINT = f"https://api.zenhub.io/p1/repositories/{issue['repo_id']}/issues/"
+    zenhub_endpoint = f"https://api.zenhub.io/p1/repositories/{issue['repo_id']}/issues/"
 
     # fetch zenhub issue data
     zenhub_issue = get_zenhub_issue(
-        ZENHUB_ENDPOINT, ZENHUB_ACCESS_TOKEN, issue["number"]
+        zenhub_endpoint, ZENHUB_ACCESS_TOKEN, issue["number"]
     )
-
+    
     if not zenhub_issue:
+        # some zenhub issues are mysteriously not found 
         print("NO ZENHUB")
         issue["pipeline"] = "Unknown"
+        issue["estimate"] = "Unknown"
         return issue
 
+    
     # add zenhub pipeline to github issue object
-    try:
-        issue["pipeline"] = zenhub_issue["pipeline"]["name"]
-
-    except KeyError:
+    # see: https://stackoverflow.com/questions/25833613/python-safe-method-to-get-value-of-nested-dictionary
+    issue["pipeline"]= zenhub_issue.get('pipeline', {}).get('name')
+            
+    if not issue.get("pipeline"):
         # closed issues do not have a zenhub pipeline :(
         issue["pipeline"] = "Closed"
+
+    # add estimate to github issue object
+    issue["estimate"] = zenhub_issue.get("estimate", {}).get("value")
 
     return issue
 
@@ -87,7 +93,7 @@ def get_zenhub_issue(url, token, issue_no):
     try:
         # handle exceptions for timeouts, connection, etc.
         res = requests.get(url, params=params)
-    
+
     except requests.exceptions.Timeout:
         print("timeout")
         return None
@@ -128,7 +134,8 @@ def parse_issue(issue):
     number = issue.get("number")
     id_ = issue.get("id")
     repo = issue.get("repo_name")
-    return {"id" : id_, "number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body, "repo": repo}
+    estimate = issue.get("estimate")
+    return {"id" : id_, "number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body, "repo": repo, "estimate" : estimate}
 
 
 def parse_labels(labels):
@@ -164,7 +171,7 @@ def main():
 
     csv_data = []
 
-    for repo in REPO_LIST:
+    for repo in stu:
         # iterate through all the repos to get issuse of interest
         repo_name = repo.get("name")
 
@@ -196,8 +203,7 @@ def main():
 
     with Pool(processes=4) as pool:
         # async get zenhub pipeline attributes
-        issues = pool.map(get_zenhub_issues, issues)
-
+        issues = pool.map(async_get_zenhub_issues, issues)
 
     for issue in issues:
         # prepare issue object for csv output
@@ -211,7 +217,7 @@ def main():
 
     with open("projects.csv", "w") as fout:
         
-        FIELDNAMES = ["id", "number", "title", "pipeline", "workgroup", "type", "project", "body", "repo"]
+        FIELDNAMES = ["id", "number", "title", "pipeline", "workgroup", "type", "project", "body", "repo", "estimate"]
 
         writer = csv.DictWriter(fout, fieldnames=FIELDNAMES)
 
