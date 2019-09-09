@@ -1,8 +1,9 @@
 '''
+Fetch Github issues and Zenhub metadata and write to CSV.
+
 TODO:
-- sleep to avoid zenhub rate limit (100 per minute)
-- milestone
-- estimate
+- milestones
+- estimates
 '''
 
 import csv
@@ -44,7 +45,7 @@ def get_github_issues(url, auth, labels=None, state="open", per_page=100):
     return data
 
 
-def async_get_zenhub_issues(issue):
+def get_zenhub_issues(issue):
     '''
     async wrapper to get zenhub issues. after creating this method i learned that 
     zenhub limits requests to 100/min. so async is basically pointless. hence we
@@ -195,7 +196,7 @@ def main():
 
     with Pool(processes=4) as pool:
         # async get zenhub pipeline attributes
-        issues = pool.map(async_get_zenhub_issues, issues)
+        issues = pool.map(get_zenhub_issues, issues)
 
 
     for issue in issues:
