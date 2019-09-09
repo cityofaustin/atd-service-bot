@@ -3,7 +3,6 @@ Fetch Github issues and Zenhub metadata and write to CSV.
 
 TODO:
 - milestones
-- estimates
 """
 
 import csv
@@ -133,9 +132,12 @@ def parse_issue(issue):
     # extract desired elements from github issue
     pipeline = issue.get("pipeline")
     title = issue.get("title")
+    
+    # drop the Project: xxx convention from project titles
     title = title.replace(
         "Project: ", ""
-    )  # drop the Project: xxx convention from project titles
+    )  
+
     body = issue.get("body")
     labels = issue.get("labels")
     labels = [label["name"] for label in labels]
@@ -143,6 +145,7 @@ def parse_issue(issue):
     id_ = issue.get("id")
     repo = issue.get("repo_name")
     estimate = issue.get("estimate")
+
     return {
         "id": id_,
         "number": number,
@@ -188,7 +191,7 @@ def main():
 
     csv_data = []
 
-    for repo in stu:
+    for repo in REPO_LIST:
         # iterate through all the repos to get issuse of interest
         repo_name = repo.get("name")
 
@@ -222,6 +225,7 @@ def main():
 
         issues.extend(append_issues)
 
+    pdb.set_trace()
     with Pool(processes=4) as pool:
         # async get zenhub pipeline attributes
         issues = pool.map(async_get_zenhub_issues, issues)
