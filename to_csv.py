@@ -145,6 +145,10 @@ def parse_issue(issue):
     id_ = issue.get("id")
     repo = issue.get("repo_name")
     estimate = issue.get("estimate")
+    milestone = issue.get("milestone")
+
+    if milestone:
+        milestone = milestone.get("title")
 
     return {
         "id": id_,
@@ -155,6 +159,7 @@ def parse_issue(issue):
         "body": body,
         "repo": repo,
         "estimate": estimate,
+        "milestone" : milestone
     }
 
 
@@ -191,6 +196,8 @@ def main():
 
     csv_data = []
 
+    # stu = [REPO_LIST[5]] #TODO: remove
+
     for repo in REPO_LIST:
         # iterate through all the repos to get issuse of interest
         repo_name = repo.get("name")
@@ -225,7 +232,8 @@ def main():
 
         issues.extend(append_issues)
 
-    pdb.set_trace()
+    # issues = issues[:5] #TODO: remove
+
     with Pool(processes=4) as pool:
         # async get zenhub pipeline attributes
         issues = pool.map(async_get_zenhub_issues, issues)
@@ -253,6 +261,7 @@ def main():
             "body",
             "repo",
             "estimate",
+            "milestone"
         ]
 
         writer = csv.DictWriter(fout, fieldnames=FIELDNAMES)
