@@ -1,8 +1,5 @@
 """
 Fetch Github issues and Zenhub metadata and write to CSV.
-
-TODO:
-- milestones
 """
 
 import csv
@@ -15,6 +12,24 @@ import requests
 
 from config.secrets import ZENHUB_ACCESS_TOKEN, GITHUB_PASSWORD, GITHUB_USER
 from config.repos import REPO_LIST
+
+FIELDNAMES = [
+    "id",
+    "number",
+    "title",
+    "pipeline",
+    "workgroup",
+    "type",
+    "project",
+    "body",
+    "repo_name",
+    "estimate",
+    "milestone",
+    "created_at",
+    "closed_at",
+    "updated_at",
+    "url"
+]
 
 
 def get_github_issues(url, auth, labels=None, state="open", per_page=100):
@@ -112,7 +127,7 @@ def get_zenhub_issue(url, token, issue_no):
         res.raise_for_status()
 
     except Exception as e:
-        # handle an edge cas where an issue is not found in zenub
+        # handle an edge case where an issue is not found in zenub
         if res.status_code == 404:
             print(f"not found: {issue_no}")
             return None
@@ -129,38 +144,18 @@ def get_zenhub_issue(url, token, issue_no):
 
 
 def parse_issue(issue):
-    # extract desired elements from github issue
-    pipeline = issue.get("pipeline")
-    title = issue.get("title")
+    # parse/format elements from github issue
     
     # drop the Project: xxx convention from project titles
-    title = title.replace(
+    issue["title"] = issue.get("title").replace(
         "Project: ", ""
     )  
 
-    body = issue.get("body")
-    labels = issue.get("labels")
-    labels = [label["name"] for label in labels]
-    number = issue.get("number")
-    id_ = issue.get("id")
-    repo = issue.get("repo_name")
-    estimate = issue.get("estimate")
-    milestone = issue.get("milestone")
+    issue["labels"] = [label["name"] for label in issue.get("labels")]
+    
+    issue["milestone"] = issue.get("milestone").get("title") if issue.get("milestone") else None
 
-    if milestone:
-        milestone = milestone.get("title")
-
-    return {
-        "id": id_,
-        "number": number,
-        "pipeline": pipeline,
-        "title": title,
-        "labels": labels,
-        "body": body,
-        "repo": repo,
-        "estimate": estimate,
-        "milestone" : milestone
-    }
+    return issue
 
 
 def parse_labels(labels):
@@ -196,8 +191,6 @@ def main():
 
     csv_data = []
 
-    # stu = [REPO_LIST[5]] #TODO: remove
-
     for repo in REPO_LIST:
         # iterate through all the repos to get issuse of interest
         repo_name = repo.get("name")
@@ -232,37 +225,21 @@ def main():
 
         issues.extend(append_issues)
 
-    # issues = issues[:5] #TODO: remove
-
     with Pool(processes=4) as pool:
         # async get zenhub pipeline attributes
         issues = pool.map(async_get_zenhub_issues, issues)
 
     for issue in issues:
         # prepare issue object for csv output
-        csv_issue = parse_issue(issue)
+        issue = parse_issue(issue)
 
-        csv_issue.update(parse_labels(csv_issue["labels"]))
+        issue.update(parse_labels(issue["labels"]))
 
-        csv_issue.pop("labels")
+        issue = {k: issue[k] for k in FIELDNAMES}
 
-        csv_data.append(csv_issue)
+        csv_data.append(issue)
 
     with open("projects.csv", "w") as fout:
-
-        FIELDNAMES = [
-            "id",
-            "number",
-            "title",
-            "pipeline",
-            "workgroup",
-            "type",
-            "project",
-            "body",
-            "repo",
-            "estimate",
-            "milestone"
-        ]
 
         writer = csv.DictWriter(fout, fieldnames=FIELDNAMES)
 
