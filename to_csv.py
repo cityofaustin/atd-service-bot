@@ -1,10 +1,10 @@
-'''
+"""
 Fetch Github issues and Zenhub metadata and write to CSV.
 
 TODO:
 - milestones
 - estimates
-'''
+"""
 
 import csv
 from multiprocessing.dummy import Pool
@@ -25,13 +25,18 @@ def get_github_issues(url, auth, labels=None, state="open", per_page=100):
     page = 1
 
     while True:
-        
+
         res = requests.get(
             url,
             auth=auth,
-            params={"labels": labels, "state": state, "per_page": per_page, "page" : page}
+            params={
+                "labels": labels,
+                "state": state,
+                "per_page": per_page,
+                "page": page,
+            },
         )
-        
+
         res.raise_for_status()
 
         data.extend(res.json())
@@ -46,36 +51,37 @@ def get_github_issues(url, auth, labels=None, state="open", per_page=100):
 
 
 def async_get_zenhub_issues(issue):
-    '''
+    """
     async wrapper to get zenhub issues. after creating this method i learned that 
     zenhub limits requests to 100/min. so async is basically pointless. hence we
     wait 3 seconds between each request.
     20 requests/minute * 4 workers = 80 requests/minute
-    '''
-    
+    """
+
     # rate limited to 100 requests per second
     print(issue["number"])
     time.sleep(3)
 
-    zenhub_endpoint = f"https://api.zenhub.io/p1/repositories/{issue['repo_id']}/issues/"
+    zenhub_endpoint = (
+        f"https://api.zenhub.io/p1/repositories/{issue['repo_id']}/issues/"
+    )
 
     # fetch zenhub issue data
     zenhub_issue = get_zenhub_issue(
         zenhub_endpoint, ZENHUB_ACCESS_TOKEN, issue["number"]
     )
-    
+
     if not zenhub_issue:
-        # some zenhub issues are mysteriously not found 
+        # some zenhub issues are mysteriously not found
         print("NO ZENHUB")
         issue["pipeline"] = "Unknown"
         issue["estimate"] = "Unknown"
         return issue
 
-    
     # add zenhub pipeline to github issue object
     # see: https://stackoverflow.com/questions/25833613/python-safe-method-to-get-value-of-nested-dictionary
-    issue["pipeline"]= zenhub_issue.get('pipeline', {}).get('name')
-            
+    issue["pipeline"] = zenhub_issue.get("pipeline", {}).get("name")
+
     if not issue.get("pipeline"):
         # closed issues do not have a zenhub pipeline :(
         issue["pipeline"] = "Closed"
@@ -106,7 +112,7 @@ def get_zenhub_issue(url, token, issue_no):
         # handle status code errors
         res.raise_for_status()
 
-    except Exception as e:    
+    except Exception as e:
         # handle an edge cas where an issue is not found in zenub
         if res.status_code == 404:
             print(f"not found: {issue_no}")
@@ -127,7 +133,9 @@ def parse_issue(issue):
     # extract desired elements from github issue
     pipeline = issue.get("pipeline")
     title = issue.get("title")
-    title = title.replace("Project: ", "") # drop the Project: xxx convention from project titles
+    title = title.replace(
+        "Project: ", ""
+    )  # drop the Project: xxx convention from project titles
     body = issue.get("body")
     labels = issue.get("labels")
     labels = [label["name"] for label in labels]
@@ -135,7 +143,16 @@ def parse_issue(issue):
     id_ = issue.get("id")
     repo = issue.get("repo_name")
     estimate = issue.get("estimate")
-    return {"id" : id_, "number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body, "repo": repo, "estimate" : estimate}
+    return {
+        "id": id_,
+        "number": number,
+        "pipeline": pipeline,
+        "title": title,
+        "labels": labels,
+        "body": body,
+        "repo": repo,
+        "estimate": estimate,
+    }
 
 
 def parse_labels(labels):
@@ -166,7 +183,7 @@ def drop_prefix(val, prefix):
 
 
 def main():
-    
+
     issues = []
 
     csv_data = []
@@ -177,11 +194,13 @@ def main():
 
         repo_id = repo.get("id")
 
-        github_endpoint = f"https://api.github.com/repos/cityofaustin/{repo_name}/issues"
+        github_endpoint = (
+            f"https://api.github.com/repos/cityofaustin/{repo_name}/issues"
+        )
 
         print(repo.get("name"))
 
-        '''
+        """
         nixing this index-specific query for now. if we want closed Index issues, we'll need to do this
         and also remove dupes from the existing query
 
@@ -189,16 +208,18 @@ def main():
             # this is the only repo that should have "Index" issues (aka, Projects),
             # and we want all of them (including closed)
             issues.extend(get_github_issues(github_endpoint, labels="Index", state="all"))
-        '''
+        """
 
         # get all open issues
-        append_issues = get_github_issues(github_endpoint, (GITHUB_USER, GITHUB_PASSWORD))
+        append_issues = get_github_issues(
+            github_endpoint, (GITHUB_USER, GITHUB_PASSWORD)
+        )
 
         # and repo info to each issue
         for issue in append_issues:
             issue["repo_name"] = repo_name
             issue["repo_id"] = repo_id
-        
+
         issues.extend(append_issues)
 
     with Pool(processes=4) as pool:
@@ -216,8 +237,19 @@ def main():
         csv_data.append(csv_issue)
 
     with open("projects.csv", "w") as fout:
-        
-        FIELDNAMES = ["id", "number", "title", "pipeline", "workgroup", "type", "project", "body", "repo", "estimate"]
+
+        FIELDNAMES = [
+            "id",
+            "number",
+            "title",
+            "pipeline",
+            "workgroup",
+            "type",
+            "project",
+            "body",
+            "repo",
+            "estimate",
+        ]
 
         writer = csv.DictWriter(fout, fieldnames=FIELDNAMES)
 
