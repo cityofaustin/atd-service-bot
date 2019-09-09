@@ -81,13 +81,20 @@ def get_zenhub_issue(url, token, issue_no):
     params = {"access_token": token}
 
     try:
+        # handle exceptions for timeouts, connection, etc.
         res = requests.get(url, params=params)
-
-        res.raise_for_status()
     
     except requests.exceptions.Timeout:
         print("timeout")
-        return None    
+        return None
+
+    except:
+        print("unknwon error")
+        return None
+
+    try:
+        # handle status code errors
+        res.raise_for_status()
 
     except Exception as e:    
         # handle an edge cas where an issue is not found in zenub
@@ -110,12 +117,14 @@ def parse_issue(issue):
     # extract desired elements from github issue
     pipeline = issue.get("pipeline")
     title = issue.get("title")
+    title = title.replace("Project: ", "") # drop the Project: xxx convention from project titles
     body = issue.get("body")
     labels = issue.get("labels")
     labels = [label["name"] for label in labels]
     number = issue.get("number")
+    id_ = issue.get("id")
     repo = issue.get("repo_name")
-    return {"number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body, "repo": repo}
+    return {"id" : id_, "number" : number, "pipeline": pipeline, "title": title, "labels": labels, "body": body, "repo": repo}
 
 
 def parse_labels(labels):
@@ -198,7 +207,7 @@ def main():
 
     with open("projects.csv", "w") as fout:
         
-        FIELDNAMES = ["number", "title", "pipeline", "workgroup", "type", "project", "body", "repo"]
+        FIELDNAMES = ["id", "number", "title", "pipeline", "workgroup", "type", "project", "body", "repo"]
 
         writer = csv.DictWriter(fout, fieldnames=FIELDNAMES)
 
