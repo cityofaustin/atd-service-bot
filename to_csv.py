@@ -46,7 +46,10 @@ def get_github_issues(url, auth, labels=None, state="open", per_page=100):
 
 def async_get_zenhub_issues(issue):
     '''
-    async wrapper to get zenhub issues
+    async wrapper to get zenhub issues. after creating this method i learned that 
+    zenhub limits requests to 100/min. so async is basically pointless. hence we
+    wait 3 seconds between each request.
+    20 requests/minute * 4 workers = 80 requests/minute
     '''
     
     # rate limited to 100 requests per second
