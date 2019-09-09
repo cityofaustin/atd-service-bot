@@ -89,7 +89,7 @@ def async_get_zenhub_issues(issue):
         # some zenhub issues are mysteriously not found
         print("NO ZENHUB")
         issue["pipeline"] = "Unknown"
-        issue["estimate"] = "Unknown"
+        issue["estimate"] = None
         return issue
 
     # add zenhub pipeline to github issue object
