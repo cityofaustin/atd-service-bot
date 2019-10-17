@@ -174,7 +174,9 @@ FIELDS = [
             "Street Banners": "atd-knack-street-banner",
             "Signs & Markings Operations": "atd-knack-signs-markings",
             "ArcGIS": "atd-geospatial",
-            "Other": "atd-data-tech",
+            "Vision Zero (Editor)": "atd-vz-data",
+            "Vision Zero (Viewer)": "atd-vz-data",
+            "Other / Not Sure": "atd-data-tech",
         },
     },
     {
