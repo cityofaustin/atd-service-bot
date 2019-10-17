@@ -72,7 +72,7 @@ def map_issue(issue, fields, knack_field_map):
                 value = issue[knack_field_label]
 
                 if field.get("format") == "quote_text":
-                    label = f"> {knack_field_label}\n"
+                    label = f"> {knack_field_label}\n\n"
                     value = f"{value}\n\n"
 
                     new_value = f"{old_value}{label}{value}"
