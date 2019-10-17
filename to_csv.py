@@ -2,6 +2,7 @@
 Fetch Github issues and Zenhub metadata and write to CSV.
 """
 
+import argparse
 import csv
 from multiprocessing.dummy import Pool
 import pdb
@@ -32,7 +33,23 @@ FIELDNAMES = [
 ]
 
 
-def get_github_issues(url, auth, labels=None, state="open", per_page=100):
+def cli_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "-f",
+        "--filter",
+        type=str,
+        choices=["projects"],
+        required=False,
+        help="Filter issues by `projects` or `features`"
+    )
+
+    args = parser.parse_args()
+    return args
+
+
+def get_github_issues(url, auth, labels=None, state="all", per_page=100):
 
     data = []
 
@@ -187,6 +204,8 @@ def drop_prefix(val, prefix):
 
 def main():
 
+    args = cli_args()
+
     issues = []
 
     csv_data = []
@@ -214,9 +233,20 @@ def main():
         """
 
         # get all open issues
-        append_issues = get_github_issues(
-            github_endpoint, (GITHUB_USER, GITHUB_PASSWORD)
-        )
+        if args.filter:
+            if args.filter=="projects":
+                    append_issues = get_github_issues(
+                        github_endpoint,
+                        (GITHUB_USER, GITHUB_PASSWORD),
+                        labels=["Index"]
+                    )
+            else:
+                raise Exception(f"Filtering by `{args.filter}` is not supported by this script.")
+
+        else:                        
+            append_issues = get_github_issues(
+                github_endpoint, (GITHUB_USER, GITHUB_PASSWORD)
+            )
 
         # and repo info to each issue
         for issue in append_issues:
@@ -250,4 +280,6 @@ def main():
             writer.writerow(row)
 
 
-main()
+
+if __name__ == "__main__":
+    main()
