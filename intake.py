@@ -212,7 +212,7 @@ def assign_to_someone(issue, repo, assignees):
         issue["assignee"].extend(ASSIGNEES["gis"])
 
     elif repo == "atd-amanda":
-        issue["assignee"].extend(ASSIGNEES["gis"])
+        issue["assignee"].extend(ASSIGNEES["amanda"])
 
     else:
         issue["assignee"].extend(ASSIGNEES["catch_all"])
