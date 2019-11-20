@@ -71,6 +71,12 @@ def map_issue(issue, fields, knack_field_map):
 
                 value = issue[knack_field_label]
 
+                if field.get("format") == "quote_text_hidden":
+                    label = f"<!--{knack_field_label}-->\n"
+                    value = f"<!--{value}-->\n\n"
+
+                    new_value = f"{label}{value}{old_value}"
+
                 if field.get("format") == "quote_text":
                     label = f"> {knack_field_label}\n\n"
                     value = f"{value}\n\n"
@@ -329,7 +335,8 @@ def main():
             # update knack record as "Sent" using form API, which will
             # trigger an email notificaiton
 
-            token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP["app_id"])
+            token = get_token(KNACK_USERNAME, KNACK_PASSWORD,
+                              KNACK_APP["app_id"])
 
             response = form_submit(
                 token,

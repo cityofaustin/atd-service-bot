@@ -17,7 +17,7 @@ FIELDS = [
         "knack": "field_406",
         "github": "description",
         "method": "merge",
-        "format": "quote_text",
+        "format": "quote_text_hidden",
     },  # email
     {
         "knack": "field_400",
