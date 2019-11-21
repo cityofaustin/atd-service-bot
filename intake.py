@@ -72,8 +72,8 @@ def map_issue(issue, fields, knack_field_map):
                 value = issue[knack_field_label]
 
                 if field.get("format") == "quote_text_hidden":
-                    label = f"<!--{knack_field_label}-->\n"
-                    value = f"<!--{value}-->\n\n"
+                    label = f"<!-- {knack_field_label} -->\n"
+                    value = f"<!-- {value} -->\n\n"
 
                     new_value = f"{label}{value}{old_value}"
 
