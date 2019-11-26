@@ -18,11 +18,7 @@ import knackpy
 import requests
 
 from config.config import ASSIGNEES, KNACK_APP, FIELDS
-from config.secrets import (
-    GITHUB_USER,
-    GITHUB_PASSWORD,
-    KNACK_CREDS,
-)
+from config.secrets import GITHUB_USER, GITHUB_PASSWORD, KNACK_CREDS
 import _transforms
 
 
@@ -277,7 +273,7 @@ def form_submit(token, app_id, scene, view, payload):
 def main():
 
     args = cli_args()
-    
+
     env = args.env
 
     KNACK_USERNAME = KNACK_CREDS[env].get("username")
