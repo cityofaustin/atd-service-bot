@@ -1,6 +1,5 @@
 
 KNACK_APP = {
-    "app_id": "595d00ebd315cc4cb98daff4",
     "api_view": {"scene": "scene_127", "view": "view_248", "ref_obj": ["object_24"]},
     "api_form": {"scene": "scene_131", "view": "view_252"},
 }
