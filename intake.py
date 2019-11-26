@@ -18,13 +18,7 @@ import knackpy
 import requests
 
 from config.config import ASSIGNEES, KNACK_APP, FIELDS
-from config.secrets import (
-    API_KEY,
-    GITHUB_USER,
-    GITHUB_PASSWORD,
-    KNACK_USERNAME,
-    KNACK_PASSWORD,
-)
+from config.secrets import GITHUB_USER, GITHUB_PASSWORD, KNACK_CREDS
 import _transforms
 
 
@@ -32,6 +26,15 @@ def cli_args():
 
     parser = argutil.get_parser(
         "intake.py", "Process new service requests from DTS Portal"
+    )
+
+    parser.add_argument(
+        "-e",
+        "--env",
+        required=True,
+        choices=["prod", "test"],
+        type=str,
+        help="The runtime environment: `prod` or `test`.",
     )
 
     args = parser.parse_args()
@@ -271,12 +274,19 @@ def main():
 
     args = cli_args()
 
+    env = args.env
+
+    KNACK_USERNAME = KNACK_CREDS[env].get("username")
+    KNACK_PASSWORD = KNACK_CREDS[env].get("password")
+    KNACK_API_KEY = KNACK_CREDS[env].get("api_key")
+    KNACK_APP_ID = KNACK_CREDS[env].get("app_id")
+
     issues = get_service_requests(
         KNACK_APP["api_view"]["scene"],
         KNACK_APP["api_view"]["view"],
         KNACK_APP["api_view"]["ref_obj"],
-        KNACK_APP["app_id"],
-        API_KEY,
+        KNACK_APP_ID,
+        KNACK_API_KEY,
     )
 
     if not issues.data:
@@ -329,11 +339,11 @@ def main():
             # update knack record as "Sent" using form API, which will
             # trigger an email notificaiton
 
-            token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP["app_id"])
-
+            token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP_ID)
+            
             response = form_submit(
                 token,
-                KNACK_APP["app_id"],
+                KNACK_APP_ID,
                 KNACK_APP["api_form"]["scene"],
                 KNACK_APP["api_form"]["view"],
                 knack_payload,
