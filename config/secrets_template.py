@@ -1,4 +1,5 @@
-# create a `secrets.py` file that looks like thisAPI_KEY = "abc123xyz"
+# create a `secrets.py` file that looks like this
+
 GITHUB_USER ="abc123xyz"
 
 GITHUB_PASSWORD = "abc123xyz"
