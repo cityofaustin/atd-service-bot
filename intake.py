@@ -44,7 +44,7 @@ def cli_args():
 
 def get_service_requests(scene, view, ref_obj, app_id, api_key):
     # Just a wrapper. Returns a Knackpy object.
-
+    # Queries Knack view pre-filtered for records that don't have a GH issue id
     return knackpy.Knack(
         scene=scene, view=view, app_id=app_id, api_key=api_key, ref_obj=ref_obj
     )
