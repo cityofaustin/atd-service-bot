@@ -340,10 +340,10 @@ def main():
             # trigger an email notificaiton
 
             token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP_ID)
-
+            
             response = form_submit(
                 token,
-                KNACK_APP["app_id"],
+                KNACK_APP_ID,
                 KNACK_APP["api_form"]["scene"],
                 KNACK_APP["api_form"]["view"],
                 knack_payload,
