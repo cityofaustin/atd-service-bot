@@ -44,7 +44,7 @@ def cli_args():
 
 def get_service_requests(scene, view, ref_obj, app_id, api_key):
     # Just a wrapper. Returns a Knackpy object.
-
+    # Queries Knack view pre-filtered for records that don't have a "Sent" GH transmission status
     return knackpy.Knack(
         scene=scene, view=view, app_id=app_id, api_key=api_key, ref_obj=ref_obj
     )
@@ -79,6 +79,12 @@ def map_issue(issue, fields, knack_field_map):
                     value = f"{value}\n\n"
 
                     new_value = f"{old_value}{label}{value}"
+
+                elif field.get("format") == "quote_text_hidden":
+                    label = f"<!-- {knack_field_label} -->\n"
+                    value = f"<!-- {value} -->\n\n"
+
+                    new_value = f"{label}{value}{old_value}"
 
                 else:
                     new_value = f"{old_value}{knack_field_label}: {value}\n\n"
@@ -340,7 +346,7 @@ def main():
             # trigger an email notificaiton
 
             token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP_ID)
-            
+
             response = form_submit(
                 token,
                 KNACK_APP_ID,

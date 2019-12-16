@@ -1,4 +1,3 @@
-
 KNACK_APP = {
     "api_view": {"scene": "scene_127", "view": "view_248", "ref_obj": ["object_24"]},
     "api_form": {"scene": "scene_131", "view": "view_252"},
@@ -16,7 +15,7 @@ FIELDS = [
         "knack": "field_406",
         "github": "description",
         "method": "merge",
-        "format": "quote_text",
+        "format": "quote_text_hidden",
     },  # email
     {
         "knack": "field_400",

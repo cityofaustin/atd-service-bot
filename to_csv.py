@@ -29,7 +29,7 @@ FIELDNAMES = [
     "created_at",
     "closed_at",
     "updated_at",
-    "url"
+    "url",
 ]
 
 
@@ -42,7 +42,7 @@ def cli_args():
         type=str,
         choices=["projects"],
         required=False,
-        help="Filter issues by `projects` or `features`"
+        help="Filter issues by `projects` or `features`",
     )
 
     args = parser.parse_args()
@@ -162,15 +162,15 @@ def get_zenhub_issue(url, token, issue_no):
 
 def parse_issue(issue):
     # parse/format elements from github issue
-    
+
     # drop the Project: xxx convention from project titles
-    issue["title"] = issue.get("title").replace(
-        "Project: ", ""
-    )  
+    issue["title"] = issue.get("title").replace("Project: ", "")
 
     issue["labels"] = [label["name"] for label in issue.get("labels")]
-    
-    issue["milestone"] = issue.get("milestone").get("title") if issue.get("milestone") else None
+
+    issue["milestone"] = (
+        issue.get("milestone").get("title") if issue.get("milestone") else None
+    )
 
     return issue
 
@@ -234,16 +234,16 @@ def main():
 
         # get all open issues
         if args.filter:
-            if args.filter=="projects":
-                    append_issues = get_github_issues(
-                        github_endpoint,
-                        (GITHUB_USER, GITHUB_PASSWORD),
-                        labels=["Index"]
-                    )
+            if args.filter == "projects":
+                append_issues = get_github_issues(
+                    github_endpoint, (GITHUB_USER, GITHUB_PASSWORD), labels=["Index"]
+                )
             else:
-                raise Exception(f"Filtering by `{args.filter}` is not supported by this script.")
+                raise Exception(
+                    f"Filtering by `{args.filter}` is not supported by this script."
+                )
 
-        else:                        
+        else:
             append_issues = get_github_issues(
                 github_endpoint, (GITHUB_USER, GITHUB_PASSWORD)
             )
@@ -278,7 +278,6 @@ def main():
         for row in csv_data:
 
             writer.writerow(row)
-
 
 
 if __name__ == "__main__":
