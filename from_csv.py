@@ -28,7 +28,6 @@ issue, then adding additional issues after success.
 import csv
 from github import Github
 from config.secrets import GITHUB_USER, GITHUB_PASSWORD
-import pdb
 
 
 def parse_list(values):
@@ -40,14 +39,14 @@ def main():
     with open("issues.csv", "r") as fin:
         reader = csv.DictReader(fin)
         data = [row for row in reader]
-    
+
     g = Github(GITHUB_USER, GITHUB_PASSWORD)
-    
+
     current_repo = ""
 
     success = 0
     fail = 0
-    
+
     for row in data:
 
         repo = row.get("repo")
@@ -57,15 +56,15 @@ def main():
             r = g.get_repo(current_repo)
 
         issue = {
-            "title" : row.get("title"),
-            "labels" : parse_list(row.get("labels")),
-            "assignees" : parse_list(row.get("assignees")),
-            "body" : row.get("description"),
+            "title": row.get("title"),
+            "labels": parse_list(row.get("labels")),
+            "assignees": parse_list(row.get("assignees")),
+            "body": row.get("description"),
         }
 
         try:
             result = r.create_issue(**issue)
-        
+
         except Exception as e:
             fail += 1
             print(f"ERROR: {e}")
@@ -74,7 +73,7 @@ def main():
         success += 1
         print(result)
 
-    print( f"***** Done! *****\n{success} issues created.\n{fail} issues failed.")
+    print(f"***** Done! *****\n{success} issues created.\n{fail} issues failed.")
 
 
 if __name__ == "__main__":
