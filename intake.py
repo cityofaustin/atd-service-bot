@@ -58,7 +58,7 @@ def map_issue(issue, fields, knack_field_map):
         "title": "",
         "github_url": None,
         "knack_id": None,
-        "repo": None,
+        "repo": "atd-data-tech",  # hardcoded since we switched to a monorepo
     }
 
     for field in fields:
@@ -340,7 +340,7 @@ def main():
             # trigger an email notificaiton
 
             token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP_ID)
-            
+
             response = form_submit(
                 token,
                 KNACK_APP_ID,
