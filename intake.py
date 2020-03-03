@@ -58,7 +58,7 @@ def map_issue(issue, fields, knack_field_map):
         "title": "",
         "github_url": None,
         "knack_id": None,
-        "repo": None,
+        "repo": "atd-data-tech",  # hardcoded since we switched to a monorepo
     }
 
     for field in fields:
