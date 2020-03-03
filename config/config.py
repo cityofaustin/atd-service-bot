@@ -206,7 +206,7 @@ ASSIGNEES = {
     # Severe/urgent issues assigned to amenity & tracy
     # everything else to amenity
     "severe_urgent": ["TracyLinder", "amenity"],
-    "amanda": ["TracyLinder"],
+    "amanda": ["TracyLinder", "amenity"],
     "gis": ["jaime-mckeown"],
     "new_projects": ["TracyLinder", "amenity"],
     "type_other": ["TracyLinder", "amenity"],

@@ -217,10 +217,10 @@ def assign_to_someone(issue, repo, assignees):
 
     issue["assignee"] = []
 
-    if repo == "atd-geospatial":
+    if any("service: geo" in label.lower() for label in issue["labels"]):
         issue["assignee"].extend(ASSIGNEES["gis"])
 
-    elif repo == "atd-amanda":
+    elif any("amanda" in label.lower() for label in issue["labels"]):
         issue["assignee"].extend(ASSIGNEES["amanda"])
 
     else:
@@ -322,7 +322,6 @@ def main():
     responses = []
 
     # create github issues
-
     for repo_name in prepared.keys():
 
         repo = get_repo(g, repo_name)
