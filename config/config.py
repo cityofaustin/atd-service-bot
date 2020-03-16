@@ -205,10 +205,10 @@ ASSIGNEES = {
     # New Project (aka, New Application) and "Something Else" issues to amenity & tracy
     # Severe/urgent issues assigned to amenity & tracy
     # everything else to amenity
-    "severe_urgent": ["TracyLinder", "amenity"],
+    "severe_urgent": ["TracyLinder", "amenity", "dianamartin", "SurbhiBakshi"],
     "amanda": ["TracyLinder", "amenity"],
     "gis": ["jaime-mckeown"],
     "new_projects": ["TracyLinder", "amenity"],
-    "type_other": ["TracyLinder", "amenity"],
-    "catch_all": ["amenity"],
+    "type_other": ["TracyLinder", "amenity", "dianamartin", "SurbhiBakshi"],
+    "catch_all": ["amenity", "dianamartin", "SurbhiBakshi"],
 }
