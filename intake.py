@@ -64,7 +64,9 @@ def map_issue(issue, fields, knack_field_map):
     }
 
     for field in fields:
-
+        """ Formatting and placement of Knack issue text is driven by
+        config/config.py
+        """
         knack_field_label = knack_field_map[field["knack"]]["label"]
 
         if field["method"] == "merge":
