@@ -124,9 +124,9 @@ def map_issue(issue, fields, knack_field_map):
                 new_value = f"{old_value}{transformed_value}\n\n"
 
             elif field.get("format") == "quote_text":
-                label = f"{knack_field_label}\n"
+                label = f"> {knack_field_label}\n"
 
-                value = f"> {transformed_value}\n\n"
+                value = f"{transformed_value}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
 
