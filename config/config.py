@@ -205,7 +205,13 @@ ASSIGNEES = {
     # New Project (aka, New Application) and "Something Else" issues to amenity & tracy
     # Severe/urgent issues assigned to amenity & tracy
     # everything else to amenity, diana, surbhi
-    "severe_urgent": ["TracyLinder", "amenity", "dianamartin", "SurbhiBakshi", "Nadin-Nader"],
+    "severe_urgent": [
+        "TracyLinder",
+        "amenity",
+        "dianamartin",
+        "SurbhiBakshi",
+        "Nadin-Nader",
+    ],
     "amanda": ["TracyLinder", "Nadin-Nader"],
     "gis": ["jaime-mckeown"],
     "new_projects": ["TracyLinder", "amenity"],
