@@ -203,7 +203,7 @@ ASSIGNEES = {
     # Any GIS issue assigned to Jaime
     # Any atd-amanda issue assigned to Tracy and Nate
     # New Project (aka, New Application) and "Something Else" issues to amenity & tracy
-    # Severe/urgent issues assigned to amenity & tracy
+    # Severe/urgent issues assigned to a bunch of folks
     # everything else to amenity, diana, surbhi
     "severe_urgent": [
         "TracyLinder",
