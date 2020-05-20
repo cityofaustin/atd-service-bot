@@ -189,6 +189,14 @@ FIELDS = [
     },  # url
     {"knack": "field_403", "github": "description", "method": "merge"},  # Browser
     {
+        "knack": "field_406",
+        "github": "description",
+        "method": "transform_merge",
+        "transform": "parse_email",
+        "format": "quote_text",
+        "rename": "Requested By"
+    },  # email > user name
+    {
         "knack": "field_402",
         "github": "description",
         "method": "transform_merge",
@@ -200,11 +208,6 @@ FIELDS = [
 ]
 
 ASSIGNEES = {
-    # Any GIS issue assigned to Jaime
-    # Any atd-amanda issue assigned to Tracy and Nate
-    # New Project (aka, New Application) and "Something Else" issues to amenity & tracy
-    # Severe/urgent issues assigned to a bunch of folks
-    # everything else to amenity, diana, surbhi
     "severe_urgent": [
         "TracyLinder",
         "amenity",
@@ -213,7 +216,7 @@ ASSIGNEES = {
         "Nadin-Nader",
     ],
     "amanda": ["TracyLinder", "Nadin-Nader"],
-    "gis": ["jaime-mckeown"],
+    "gis": ["jaime-mckeown", "alan-deanda"],
     "new_projects": ["TracyLinder", "amenity"],
     "type_other": ["TracyLinder", "amenity", "dianamartin", "SurbhiBakshi"],
     "catch_all": ["amenity", "dianamartin", "SurbhiBakshi"],
