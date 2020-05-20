@@ -1,7 +1,9 @@
 """
-Intake.py — Create github issues from service requests received via the the knack-based DTS portal.
+Intake.py — Create github issues from service requests received via the the knack-based
+DTS portal.
 
-Before you modify this app! Successful processing is contingent on coded values in the Knack app, as well as our label definitions on github.
+Before you modify this app! Be aware that successful processing is contingent on
+coded values in the Knack app, as well as our label definitions on github.
 
 You must up the `config/config.py` if you change any of these things in the DTS Knack app:
 - Workgroup names
