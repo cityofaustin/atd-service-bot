@@ -27,3 +27,19 @@ def parse_attachment_url(obj):
 
     # format as markdown
     return f"[Attachment]({url}) ({size})"
+
+
+def parse_email(email_addr):
+    """
+    Extract `<First name> <Last intial>.` from email address
+    """
+    try:
+        first, last = email_addr.split("@")[0].split(".")
+
+        last = last[0]
+        return f"{first} {last}.".title()
+
+    except:
+        # probably a ValueError/ maybe a malformed email address.
+        # but we don't want to break the script if we can't parse the email.
+        return "Error :("
