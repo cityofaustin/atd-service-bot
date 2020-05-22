@@ -27,6 +27,7 @@ def get_all_labels(repo_name):
 
         try:
             links = requests.utils.parse_header_links(res.headers["Link"])
+
         except KeyError:
             # if there's only one page there will be no link headers
             break
@@ -39,7 +40,7 @@ def get_all_labels(repo_name):
                 elif link.get("rel") == "last":
                     last_url = link.get("url")
 
-        return labels
+    return labels
 
 
 def update_label(repo_name, label_name, new_label):
