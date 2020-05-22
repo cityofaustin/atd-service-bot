@@ -62,6 +62,8 @@ def main():
             "body": row.get("description"),
         }
 
+        issue["labels"].append("imported-from-csv")
+
         try:
             result = r.create_issue(**issue)
 
