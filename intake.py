@@ -17,7 +17,7 @@ from github import Github
 import knackpy
 import requests
 
-from config.config import ASSIGNEES, KNACK_APP, FIELDS
+from config.config import KNACK_APP, FIELDS
 from config.secrets import GITHUB_USER, GITHUB_PASSWORD, KNACK_CREDS
 import _transforms
 
@@ -209,38 +209,6 @@ def format_title(issue):
     return issue
 
 
-def assign_to_someone(issue, repo, assignees):
-    """
-    Assign issue to someone based on issue attributes. See config for
-    rule definitions.
-    """
-
-    issue["assignee"] = []
-
-    if any("service: geo" in label.lower() for label in issue["labels"]):
-        issue["assignee"].extend(ASSIGNEES["gis"])
-
-    elif any("amanda" in label.lower() for label in issue["labels"]):
-        issue["assignee"].extend(ASSIGNEES["amanda"])
-
-    else:
-        issue["assignee"].extend(ASSIGNEES["catch_all"])
-
-    if any("type: other" in label.lower() for label in issue["labels"]):
-        issue["assignee"].extend(ASSIGNEES["type_other"])
-
-    if any("type: new application" in label.lower() for label in issue["labels"]):
-        issue["assignee"].extend(ASSIGNEES["new_projects"])
-
-    if any("severe" in label.lower() for label in issue["labels"]):
-        issue["assignee"].extend(ASSIGNEES["severe_urgent"])
-
-    # remove possible duplicate assignee names
-    issue["assignee"] = list(set(issue["assignee"]))
-
-    return issue
-
-
 def get_repo(g, repo, org="cityofaustin"):
     return g.get_repo(f"{org}/{repo}")
 
@@ -310,7 +278,9 @@ def main():
 
         github_issue = format_title(github_issue)
 
-        github_issue = assign_to_someone(github_issue, repo, ASSIGNEES)
+        # all issues are assigned to the service bot. on issue creation an email will
+        # be sent to the transportation.data inbox, to be handled by the service desk
+        github_issue["assignee"] = ["atdservicebot"]
 
         if repo not in prepared:
             prepared[repo] = []
