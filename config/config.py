@@ -198,17 +198,3 @@ FIELDS = [
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
 ]
-
-ASSIGNEES = {
-    # Any atd-geospatial issue assigned to Jaime
-    # Any atd-amanda issue assigned to Tracy
-    # New Project (aka, New Application) and "Something Else" issues to amenity & tracy
-    # Severe/urgent issues assigned to amenity & tracy
-    # everything else to amenity
-    "severe_urgent": ["TracyLinder", "amenity", "dianamartin", "SurbhiBakshi"],
-    "amanda": ["TracyLinder", "amenity"],
-    "gis": ["jaime-mckeown"],
-    "new_projects": ["TracyLinder", "amenity"],
-    "type_other": ["TracyLinder", "amenity", "dianamartin", "SurbhiBakshi"],
-    "catch_all": ["amenity", "dianamartin", "SurbhiBakshi"],
-}
