@@ -18,7 +18,7 @@ import knackpy
 import requests
 
 from config.config import KNACK_APP, FIELDS
-from config.secrets import GITHUB_USER, GITHUB_PASSWORD, KNACK_CREDS
+from config.secrets import GITHUB_ACCESS_TOKEN, KNACK_CREDS
 import _transforms
 
 
@@ -287,7 +287,7 @@ def main():
 
         prepared[repo].append(github_issue)
 
-    g = Github(GITHUB_USER, GITHUB_PASSWORD)
+    g = Github(GITHUB_ACCESS_TOKEN)
 
     responses = []
 
