@@ -1,7 +1,9 @@
 """
-Intake.py — Create github issues from service requests received via the the knack-based DTS portal.
+Intake.py — Create github issues from service requests received via the the knack-based
+DTS portal.
 
-Before you modify this app! Successful processing is contingent on coded values in the Knack app, as well as our label definitions on github.
+Before you modify this app! Be aware that successful processing is contingent on
+coded values in the Knack app, as well as our label definitions on github.
 
 You must up the `config/config.py` if you change any of these things in the DTS Knack app:
 - Workgroup names
@@ -62,7 +64,9 @@ def map_issue(issue, fields, knack_field_map):
     }
 
     for field in fields:
-
+        """ Formatting and placement of Knack issue text is driven by
+        config/config.py
+        """
         knack_field_label = knack_field_map[field["knack"]]["label"]
 
         if field["method"] == "merge":
@@ -120,9 +124,9 @@ def map_issue(issue, fields, knack_field_map):
                 new_value = f"{old_value}{transformed_value}\n\n"
 
             elif field.get("format") == "quote_text":
-                label = f"{knack_field_label}\n"
+                label = f"> {knack_field_label}\n"
 
-                value = f"> {transformed_value}\n\n"
+                value = f"{transformed_value}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
 
