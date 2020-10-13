@@ -14,7 +14,6 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 - labels
 """
 import os
-from pprint import pprint as print
 
 from github import Github
 import knackpy
