@@ -1,8 +1,3 @@
-atd-args-util
-atd-email-util
-atd-jobs-util
-atd-log-util
-knackpy
-pygithub
-pyyaml
-requests
+knackpy==1.0.*
+pygithub==1.53.*
+requests==2.24.*
