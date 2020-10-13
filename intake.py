@@ -5,7 +5,7 @@ DTS portal.
 Before you modify this app! Be aware that successful processing is contingent on
 coded values in the Knack app, as well as our label definitions on github.
 
-You must up the `config/config.py` if you change any of these things in the DTS Knack app:
+You must update `config/config.py` if you change any of these in the DTS Knack app:
 - Workgroup names
 - Any pre-defined choice-list options (impact, need, application, workgroup, etc)
 
@@ -146,11 +146,8 @@ def get_token(email, pw, app_id):
 
 def form_submit(token, app_id, scene, view, payload):
     record_id = payload["id"]
-
     url = f"https://api.knack.com/v1/pages/{scene}/views/{view}/records/{record_id}"
-
     headers = {"X-Knack-Application-Id": app_id, "Authorization": token}
-
     res = requests.put(url, headers=headers, json=payload)
 
     try:
