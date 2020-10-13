@@ -13,46 +13,20 @@ You must up the `config/config.py` if you change any of these things in the DTS 
 - repo names
 - labels
 """
+import os
+from pprint import pprint as print
 
-import argutil
 from github import Github
 import knackpy
 import requests
 
 from config.config import KNACK_APP, FIELDS
-from config.secrets import GITHUB_ACCESS_TOKEN, KNACK_CREDS
 import _transforms
 
-
-def cli_args():
-
-    parser = argutil.get_parser(
-        "intake.py", "Process new service requests from DTS Portal"
-    )
-
-    parser.add_argument(
-        "-e",
-        "--env",
-        required=True,
-        choices=["prod", "test"],
-        type=str,
-        help="The runtime environment: `prod` or `test`.",
-    )
-
-    args = parser.parse_args()
-
-    return args
+REPO = "atd-data-tech"
 
 
-def get_service_requests(scene, view, ref_obj, app_id, api_key):
-    # Just a wrapper. Returns a Knackpy object.
-    # Queries Knack view pre-filtered for records that don't have a "Sent" GH transmission status
-    return knackpy.Knack(
-        scene=scene, view=view, app_id=app_id, api_key=api_key, ref_obj=ref_obj
-    )
-
-
-def map_issue(issue, fields, knack_field_map):
+def map_issue(issue, fields):
 
     github_issue = {
         "description": "",
@@ -60,54 +34,45 @@ def map_issue(issue, fields, knack_field_map):
         "title": "",
         "github_url": None,
         "knack_id": None,
-        "repo": "atd-data-tech",  # hardcoded since we switched to a monorepo
+        "repo": REPO,  # hardcoded since we switched to a monorepo
     }
 
     for field in fields:
         """ Formatting and placement of Knack issue text is driven by
         config/config.py
         """
-        knack_field_label = knack_field_map[field["knack"]]["label"]
+        knack_field_id = field["knack"]
+        knack_field_label = issue.fields[knack_field_id].name
+        knack_field_value = issue.fields[knack_field_id].formatted
+
+        if not knack_field_value:
+            continue
 
         if field["method"] == "merge":
             old_value = github_issue[field["github"]]
 
-            try:
-                if not issue[knack_field_label]:
-                    continue
+            value = issue[knack_field_id]
 
-                value = issue[knack_field_label]
+            if field.get("format") == "quote_text":
+                label = f"> {knack_field_label}\n\n"
+                value = f"{value}\n\n"
 
-                if field.get("format") == "quote_text":
-                    label = f"> {knack_field_label}\n\n"
-                    value = f"{value}\n\n"
+                new_value = f"{old_value}{label}{value}"
 
-                    new_value = f"{old_value}{label}{value}"
+            elif field.get("format") == "quote_text_hidden":
+                label = f"<!-- {knack_field_label} -->\n"
+                value = f"<!-- {value} -->\n\n"
 
-                elif field.get("format") == "quote_text_hidden":
-                    label = f"<!-- {knack_field_label} -->\n"
-                    value = f"<!-- {value} -->\n\n"
+                new_value = f"{label}{value}{old_value}"
 
-                    new_value = f"{label}{value}{old_value}"
+            else:
+                new_value = f"{old_value}{knack_field_label}: {value}\n\n"
 
-                else:
-                    new_value = f"{old_value}{knack_field_label}: {value}\n\n"
-
-                github_issue[field["github"]] = new_value
-
-            except KeyError:
-                continue
+            github_issue[field["github"]] = new_value
 
         elif field["method"] == "transform_merge":
 
-            try:
-                if not issue[knack_field_label]:
-                    continue
-
-                untransformed = issue[knack_field_label]
-
-            except KeyError:
-                continue
+            untransformed = issue[knack_field_id]
 
             # get the transform function
             transform_func = getattr(_transforms, field["transform"])
@@ -137,61 +102,13 @@ def map_issue(issue, fields, knack_field_map):
 
         elif field["method"] == "map_append":
 
-            try:
-                val_knack = issue[knack_field_label]
+            val_mapped = field["map"].get(knack_field_value)
 
-            except KeyError:
-                continue
-
-            if not val_knack:
-                # handle empty strings in knack data by ignoring them
-                continue
-
-            else:
-                val_knack = [val_knack]
-
-            for val in val_knack:
-
-                val_mapped = field["map"].get(val)
-
-                if val_mapped:
-                    github_issue[field["github"]].append(val_mapped)
-
-        elif field["method"] == "map":
-
-            try:
-                if not issue[knack_field_label]:
-                    continue
-
-                val_knack = issue[knack_field_label]
-
-            except KeyError:
-                if field.get("default"):
-                    github_issue[field["github"]] = field.get("default")
-
-                continue
-
-            val_mapped = field["map"][val_knack]
-
-            github_issue[field["github"]] = val_mapped
+            if val_mapped:
+                github_issue[field["github"]].append(val_mapped)
 
         elif field["method"] == "copy":
-
-            try:
-                # we try/except here to handle empty/optional fields
-                if not issue[knack_field_label]:
-                    continue
-
-                if field.get("format") == "none":
-                    val_knack = issue[knack_field_label]
-
-                else:
-                    val_knack = str(issue[knack_field_label]) + "\n\n"
-
-            except KeyError:
-                continue
-
-            github_issue[field["github"]] = val_knack
+            github_issue[field["github"]] = knack_field_value
 
     return github_issue
 
@@ -206,7 +123,7 @@ def format_title(issue):
 
     if any("severe" in label.lower() for label in issue["labels"]):
         # we want to include "Urgent" in the title for "Impact: Severe" issues
-        urgent = "(Urgent) "
+        urgent = "[URGENT] "
 
     issue["title"] = f"{urgent}{issue['title']}"
 
@@ -249,86 +166,66 @@ def form_submit(token, app_id, scene, view, payload):
 
 
 def main():
+    KNACK_DTS_PORTAL_USERNAME = os.environ["KNACK_DTS_PORTAL_USERNAME"]
+    KNACK_DTS_PORTAL_PASSWORD = os.environ["KNACK_DTS_PORTAL_USERNAME"]
+    KNACK_API_KEY = os.environ["KNACK_API_KEY"]
+    KNACK_APP_ID = os.environ["KNACK_APP_ID"]
+    GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 
-    args = cli_args()
+    view = KNACK_APP["api_view"]["view"]
+    app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
 
-    env = args.env
+    issues = app.get(view)
 
-    KNACK_USERNAME = KNACK_CREDS[env].get("username")
-    KNACK_PASSWORD = KNACK_CREDS[env].get("password")
-    KNACK_API_KEY = KNACK_CREDS[env].get("api_key")
-    KNACK_APP_ID = KNACK_CREDS[env].get("app_id")
-
-    issues = get_service_requests(
-        KNACK_APP["api_view"]["scene"],
-        KNACK_APP["api_view"]["view"],
-        KNACK_APP["api_view"]["ref_obj"],
-        KNACK_APP_ID,
-        KNACK_API_KEY,
-    )
-
-    if not issues.data:
+    if not issues:
         return 0
 
-    prepared = {}
+    prepared = []
 
-    for issue in issues.data:
-
+    for issue in issues:
         # turn knack issues into github issues
-        github_issue = map_issue(issue, FIELDS, issues.fields)
-
-        # organize issues by repo
-        repo = github_issue["repo"]
-
+        github_issue = map_issue(issue, FIELDS)
         github_issue = format_title(github_issue)
-
         # all issues are assigned to the service bot. on issue creation an email will
         # be sent to the transportation.data inbox, to be handled by the service desk
         github_issue["assignee"] = ["atdservicebot"]
+        prepared.append(github_issue)
 
-        if repo not in prepared:
-            prepared[repo] = []
-
-        prepared[repo].append(github_issue)
-
+    breakpoint()
     g = Github(GITHUB_ACCESS_TOKEN)
-
+    repo = get_repo(g, REPO)
     responses = []
 
-    # create github issues
-    for repo_name in prepared.keys():
+    for issue in prepared:
+        result = repo.create_issue(
+            title=issue["title"],
+            labels=issue.get("labels"),
+            assignees=issue.get("assignee"),
+            body=issue["description"],
+        )
 
-        repo = get_repo(g, repo_name)
+        knack_payload = {
+            "id": issue["knack_id"],
+            "field_394": result.number,  # github issue number
+            "field_395": issue["repo"],  # repo
+            "field_392": "Sent",  # github transmission status
+        }
 
-        for issue in prepared[repo_name]:
-            result = repo.create_issue(
-                title=issue["title"],
-                labels=issue.get("labels"),
-                assignees=issue.get("assignee"),
-                body=issue["description"],
-            )
+        # update knack record as "Sent" using form API, which will
+        # trigger an email notificaiton if warranted
+        token = get_token(
+            KNACK_DTS_PORTAL_USERNAME, KNACK_DTS_PORTAL_PASSWORD, KNACK_APP_ID
+        )
 
-            knack_payload = {
-                "id": issue["knack_id"],
-                "field_394": result.number,  # github issue number
-                "field_395": issue["repo"],  # repo
-                "field_392": "Sent",  # github transmission status
-            }
+        response = form_submit(
+            token,
+            KNACK_APP_ID,
+            KNACK_APP["api_form"]["scene"],
+            KNACK_APP["api_form"]["view"],
+            knack_payload,
+        )
 
-            # update knack record as "Sent" using form API, which will
-            # trigger an email notificaiton
-
-            token = get_token(KNACK_USERNAME, KNACK_PASSWORD, KNACK_APP_ID)
-
-            response = form_submit(
-                token,
-                KNACK_APP_ID,
-                KNACK_APP["api_form"]["scene"],
-                KNACK_APP["api_form"]["view"],
-                knack_payload,
-            )
-
-            responses.append(response)
+        responses.append(response)
 
     return len(responses)
 
