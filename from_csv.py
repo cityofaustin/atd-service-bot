@@ -26,21 +26,22 @@ issue, then adding additional issues after success.
 4. Run the script. Tada!
 """
 import csv
-from github import Github
-from config.secrets import GITHUB_USER, GITHUB_PASSWORD
+import os
 
+from github import Github
 
 def parse_list(values):
     return [val.strip() for val in values.split(",")]
 
 
 def main():
+    GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 
     with open("issues.csv", "r") as fin:
         reader = csv.DictReader(fin)
         data = [row for row in reader]
 
-    g = Github(GITHUB_USER, GITHUB_PASSWORD)
+    g = Github(GITHUB_ACCESS_TOKEN)
 
     current_repo = ""
 
