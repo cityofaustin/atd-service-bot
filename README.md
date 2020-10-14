@@ -3,15 +3,20 @@ A bot that creates github issues from our Knack-based intake form.
 
 ## Get it going
 
-1. Add a file called `secrets.py` to the `config` directory following the `config/secrets_template.py` template.
+1. Configure these environmental variables, which you can grab from Airflow:
+- KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME
+- KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD
+- KNACK_API_KEY
+- KNACK_APP_ID
+- GITHUB_ACCESS_TOKEN
 
-2. Install the package dependencies: `pip install -r requirements.txt`
+2. Pull the docker image (`atddocker/atd-service-bot`) or install the package dependencies: `pip install -r requirements.txt`
 
-3. Run it once, or schedule as a cron job: `python intake.py`
+3. Run `python intake.py`
 
 ## How it works
 
-The bot runs on a cron schedule and fetches new service requests from our Knack app. It geneterates a github issue and applies labels and assignees based on the definitions in `config/config.py`. With the github issue successfully created, the bot submits an "edit record" form in Knack, which sets the record's `github_transmission_status` to `sent`. The form submit also triggers email notifications to the requester and to our staff.
+The bot runs on Airflow and fetches new service requests from our Knack app. It geneterates a github issue and applies labels and assignees based on the definitions in `config/config.py`. With the github issue successfully created, the bot submits an "edit record" form in Knack, which sets the record's `github_transmission_status` to `sent`. The form submit also triggers email notifications to the requester and to our staff.
 
 ## How not to break the bot
 
