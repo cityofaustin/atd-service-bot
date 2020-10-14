@@ -1,3 +1,4 @@
 knackpy==1.0.*
 pygithub==1.53.*
 requests==2.24.*
+sodapy==2.1.*
