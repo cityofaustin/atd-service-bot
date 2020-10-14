@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Intake.py — Create github issues from service requests received via the the knack-based
 DTS portal.
@@ -13,7 +14,9 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 - repo names
 - labels
 """
+import logging
 import os
+import sys
 
 from github import Github
 import knackpy
@@ -162,6 +165,8 @@ def form_submit(token, app_id, scene, view, payload):
 
 
 def main():
+    logging.info("Starting...")
+
     KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.environ[
         "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME"
     ]
@@ -178,6 +183,7 @@ def main():
     issues = app.get(view)
 
     if not issues:
+        logging.info("No issues to process.")
         return 0
 
     prepared = []
@@ -228,9 +234,10 @@ def main():
         )
 
         responses.append(response)
-
-    return len(responses)
-
-
+    
+    logging.info(f"{len(responses)} issues processed.")
+ 
 if __name__ == "__main__":
+    # airflow needs this to see logs from the DockerOperator
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     main()
