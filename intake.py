@@ -162,8 +162,12 @@ def form_submit(token, app_id, scene, view, payload):
 
 
 def main():
-    KNACK_DTS_PORTAL_USERNAME = os.environ["KNACK_DTS_PORTAL_USERNAME"]
-    KNACK_DTS_PORTAL_PASSWORD = os.environ["KNACK_DTS_PORTAL_USERNAME"]
+    KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.environ[
+        "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME"
+    ]
+    KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD = os.environ[
+        "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD"
+    ]
     KNACK_API_KEY = os.environ["KNACK_API_KEY"]
     KNACK_APP_ID = os.environ["KNACK_APP_ID"]
     GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
@@ -187,9 +191,15 @@ def main():
         github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
 
-    breakpoint()
     g = Github(GITHUB_ACCESS_TOKEN)
     repo = get_repo(g, REPO)
+
+    token = get_token(
+        KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
+        KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD,
+        KNACK_APP_ID,
+    )
+
     responses = []
 
     for issue in prepared:
@@ -209,10 +219,6 @@ def main():
 
         # update knack record as "Sent" using form API, which will
         # trigger an email notificaiton if warranted
-        token = get_token(
-            KNACK_DTS_PORTAL_USERNAME, KNACK_DTS_PORTAL_PASSWORD, KNACK_APP_ID
-        )
-
         response = form_submit(
             token,
             KNACK_APP_ID,
