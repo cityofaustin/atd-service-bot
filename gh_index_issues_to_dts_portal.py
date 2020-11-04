@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+""" Create or update "Index" issues in the DTS Portal from Github.
+
+We use the DTS portal to track our project (aka "Index" issue) scoring. This
+script keeps the issue titles in the DTS portal in sync with Github by fetching these
+issues from the atd-data-tech repo and either creating new project records in the DTS
+portal or updating existing project records if their title does not match the title of
+the issue on Github."""
 import logging
 import os
 import sys
