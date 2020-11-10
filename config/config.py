@@ -173,7 +173,7 @@ FIELDS = [
         "map": {
             "AMANDA": "Product: AMANDA",
             "Data Tracker": "Product: AMD Data Tracker",
-            "Finance & Purchasing": "Product: Finance & Inventory",
+            "Finance & Purchasing": "Product: Finance & Purchasing",
             "Street Banners": "Product: Banners",
             "Signs & Markings Operations": "Product: Signs & Markings",
             "ArcGIS": "Service: Geo",
