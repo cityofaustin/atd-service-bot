@@ -67,7 +67,7 @@ def main():
         method = "update" if record.get("id") else "create"
         app.record(data=record, method=method, obj=KNACK_OBJ)
 
-    logging.info(f"Creating/updating {len(knack_payload)} processed.")
+    logging.info(f"{len(knack_payload)} records processed.")
 
 
 if __name__ == "__main__":
