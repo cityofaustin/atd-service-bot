@@ -54,7 +54,7 @@ def main():
     g = Github(GITHUB_ACCESS_TOKEN)
     repo = g.get_repo(REPO)
 
-    project_issues_paginator = repo.get_issues(state="all", labels=["Index"])
+    project_issues_paginator = repo.get_issues(state="all", labels=["Project Index"])
     project_issues = [issue for issue in project_issues_paginator]
 
     knack_payload = build_payload(
