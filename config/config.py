@@ -174,9 +174,11 @@ FIELDS = [
             "AMANDA": "Product: AMANDA",
             "Data Tracker": "Product: AMD Data Tracker",
             "Finance & Purchasing": "Product: Finance & Purchasing",
+            "Moped": "Product: Moped",
             "Street Banners": "Product: Banners",
             "Signs & Markings Operations": "Product: Signs & Markings",
             "ArcGIS": "Service: Geo",
+            "Vision Zero in Action": "Product: Vision Zero in Action",
             "Vision Zero (Editor)": "Product: Vision Zero Editor",
             "Vision Zero (Viewer)": "Product: Vision Zero Viewer",
         },
@@ -194,7 +196,7 @@ FIELDS = [
         "method": "transform_merge",
         "transform": "parse_email",
         "format": "quote_text",
-        "rename": "Requested By"
+        "rename": "Requested By",
     },  # email > user name
     {
         "knack": "field_402",
