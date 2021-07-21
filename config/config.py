@@ -181,6 +181,12 @@ FIELDS = [
             "Vision Zero in Action": "Product: Vision Zero in Action",
             "Vision Zero (Editor)": "Product: Vision Zero Editor",
             "Vision Zero (Viewer)": "Product: Vision Zero Viewer",
+            "Transportation Development Services (TDS)": "Product: TDS Portal",
+            "Parking Enterprise Portal": "Product: Parking Enterprise Portal",
+            "Human Resources": "Product: Human Resources",
+            "Shared Mobility Operations": "Product: Shared Mobility Operations",
+            "Right-of-Way (ROW) Portal": "Product: ROW Portal",
+            "Residential Parking Permits (RPP)": "Product: Residential Parking Permits (RPP)",
         },
     },
     {
