@@ -111,6 +111,7 @@ FIELDS = [
             "Smart Mobility": "Workgroup: SM",
             "Systems Development": "Workgroup: SDD",
             "Transportation Engineering": "Workgroup: TE",
+            "Transportation Development Services (TDS)": "Workgroup: TDS",
             "Vision Zero": "Workgroup: VZ",
             "Other": "Workgroup: Other",
         },
