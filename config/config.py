@@ -1,4 +1,4 @@
-KNACK_APP = {
+workKNACK_APP = {
     "api_view": {"scene": "scene_127", "view": "view_248", "ref_obj": ["object_24"]},
     "api_form": {"scene": "scene_131", "view": "view_252"},
 }
@@ -110,7 +110,7 @@ FIELDS = [
             "Signs & Markings": "Workgroup: SMB",
             "Smart Mobility": "Workgroup: SM",
             "Systems Development": "Workgroup: SDD",
-            "Transportation Engineering": "Workgroup: TE",
+            "Transportation Engineering": "Workgroup: TED",
             "Transportation Development Services (TDS)": "Workgroup: TDS",
             "Vision Zero": "Workgroup: VZ",
             "Other": "Workgroup: Other",
