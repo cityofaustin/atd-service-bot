@@ -1,4 +1,4 @@
-workKNACK_APP = {
+KNACK_APP = {
     "api_view": {"scene": "scene_127", "view": "view_248", "ref_obj": ["object_24"]},
     "api_form": {"scene": "scene_131", "view": "view_252"},
 }
