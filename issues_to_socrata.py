@@ -13,7 +13,7 @@ import sodapy
 
 
 def extract_workgroups_from_labels(labels):
-    """ Extract a comma-separated list of workgroup names from "Workgroup: Xyz" labels"""
+    """Extract a comma-separated list of workgroup names from "Workgroup: Xyz" labels"""
     workgroup_labels = list(
         set([label.name for label in labels if label.name.startswith("Workgroup:")])
     )
@@ -31,7 +31,7 @@ def get_github_issues(repo_name, github_access_token, state="all"):
 
 
 def issue_to_dict(issue):
-    """ breakdown pygithub classes into dicts """
+    """breakdown pygithub classes into dicts"""
     issue_dict = {}
 
     issue_dict["workgroups"] = extract_workgroups_from_labels(issue.labels)
@@ -73,7 +73,7 @@ def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
 
 
 def create_zenhub_metadata_index(metadata):
-    """ flatten the zenhub metadata so that we can lookup issue properties by number """
+    """flatten the zenhub metadata so that we can lookup issue properties by number"""
     index = {}
     for p in metadata["pipelines"]:
         pipeline_name = p["name"]
@@ -86,6 +86,12 @@ def create_zenhub_metadata_index(metadata):
                 "pipeline": pipeline_name,
             }
     return index
+
+
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i : i + n]
 
 
 def main():
@@ -120,9 +126,12 @@ def main():
         SOCRATA_APP_TOKEN,
         username=SOCRATA_API_KEY_ID,
         password=SOCRATA_API_KEY_SECRET,
+        timeout=60,
     )
-    client.upsert(SOCRATA_RESOURCE_ID, issues)
-    logging.info(f"{len(issues)} processed")
+
+    for chunk in chunks(issues, 1000):
+        client.upsert(SOCRATA_RESOURCE_ID, issues)
+        logging.info(f"{len(chunk)} processed")
 
 
 if __name__ == "__main__":
