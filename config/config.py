@@ -109,7 +109,7 @@ FIELDS = [
             "Right-of-Way": "Workgroup: ROW",
             "Signs & Markings": "Workgroup: SMB",
             "Smart Mobility Office": "Workgroup: SMO",
-            "Shared Mobility Services": "Workgroup: SMS"
+            "Shared Mobility Services": "Workgroup: SMS",
             "Systems Development": "Workgroup: SDD",
             "Transportation Engineering": "Workgroup: TED",
             "Transportation Development Services (TDS)": "Workgroup: TDS",
