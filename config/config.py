@@ -108,7 +108,8 @@ FIELDS = [
             "Public Information Office": "Workgroup: PIO",
             "Right-of-Way": "Workgroup: ROW",
             "Signs & Markings": "Workgroup: SMB",
-            "Smart Mobility": "Workgroup: SM",
+            "Smart Mobility Office": "Workgroup: SMO",
+            "Shared Mobility Services": "Workgroup: SMS"
             "Systems Development": "Workgroup: SDD",
             "Transportation Engineering": "Workgroup: TED",
             "Transportation Development Services (TDS)": "Workgroup: TDS",
