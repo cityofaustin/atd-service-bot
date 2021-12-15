@@ -25,6 +25,15 @@ import requests
 from config.config import KNACK_APP, FIELDS
 import _transforms
 
+KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.getenv(
+    "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME"
+)
+KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD = os.getenv(
+    "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD"
+)
+KNACK_API_KEY = os.getenv("KNACK_API_KEY")
+KNACK_APP_ID = os.getenv("KNACK_APP_ID")
+GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 REPO = "atd-data-tech"
 
 
@@ -40,7 +49,7 @@ def map_issue(issue, fields):
     }
 
     for field in fields:
-        """ Formatting and placement of Knack issue text is driven by
+        """Formatting and placement of Knack issue text is driven by
         config/config.py
         """
         knack_field_id = field["knack"]
@@ -166,17 +175,6 @@ def form_submit(token, app_id, scene, view, payload):
 
 def main():
     logging.info("Starting...")
-
-    KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.environ[
-        "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME"
-    ]
-    KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD = os.environ[
-        "KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD"
-    ]
-    KNACK_API_KEY = os.environ["KNACK_API_KEY"]
-    KNACK_APP_ID = os.environ["KNACK_APP_ID"]
-    GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
-
     view = KNACK_APP["api_view"]["view"]
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
 
@@ -234,9 +232,10 @@ def main():
         )
 
         responses.append(response)
-    
+
     logging.info(f"{len(responses)} issues processed.")
- 
+
+
 if __name__ == "__main__":
     # airflow needs this to see logs from the DockerOperator
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
