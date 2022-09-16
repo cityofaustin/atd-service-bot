@@ -11,6 +11,14 @@ from github import Github
 import requests
 import sodapy
 
+REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
+WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
+SOCRATA_RESOURCE_ID = "rzwg-fyv8"
+ZENHUB_ACCESS_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
+GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
+SOCRATA_API_KEY_ID = os.environ["SOCRATA_API_KEY_ID"]
+SOCRATA_API_KEY_SECRET = os.environ["SOCRATA_API_KEY_SECRET"]
+SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
 
 def extract_workgroups_from_labels(labels):
     """Extract a comma-separated list of workgroup names from "Workgroup: Xyz" labels"""
@@ -95,22 +103,18 @@ def chunks(lst, n):
 
 
 def main():
-    logging.info("Starting...")
-    REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
-    WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
-    SOCRATA_RESOURCE_ID = "rzwg-fyv8"
-    ZENHUB_ACCESS_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
-    GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
-    SOCRATA_API_KEY_ID = os.environ["SOCRATA_API_KEY_ID"]
-    SOCRATA_API_KEY_SECRET = os.environ["SOCRATA_API_KEY_SECRET"]
-    SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
-
+    logging.info("Fetching github issues...")
     issues_gh = get_github_issues(REPO["name"], GITHUB_ACCESS_TOKEN)
     issues = [issue_to_dict(issue) for issue in issues_gh]
+
+    logging.info("Converting timestamps...")
     convert_timestamps(issues)
+
+    logging.info("Fetching zenhub data...")
     zenhub_metadata = get_zenhub_metadata(WORKSPACE_ID, ZENHUB_ACCESS_TOKEN, REPO["id"])
     zenhub_metadata_index = create_zenhub_metadata_index(zenhub_metadata)
 
+    logging.info("Processing Zenhub data...")
     for issue in issues:
         zenhub_meta = zenhub_metadata_index.get(issue["number"])
         if zenhub_meta:
@@ -129,7 +133,13 @@ def main():
         timeout=60,
     )
 
+    logging.info(f"Uploading to Socrata...")
+    first_chunk = True
     for chunk in chunks(issues, 1000):
+        if first_chunk:
+            # completely replace dataset to ensure deleted issues are flushed
+            client.replace(SOCRATA_RESOURCE_ID, issues)
+            first_chunk = False
         client.upsert(SOCRATA_RESOURCE_ID, issues)
         logging.info(f"{len(chunk)} processed")
 
