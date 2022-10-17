@@ -105,6 +105,7 @@ FIELDS = [
             "Office of Special Events": "Workgroup: OSE",
             "Parking Enterprise": "Workgroup: PE",
             "Parking Meters": "Workgroup: PE",
+            "Project Delivery": "Workgroup: PDD",
             "Public Information Office": "Workgroup: PIO",
             "Right-of-Way": "Workgroup: ROW",
             "Signs & Markings": "Workgroup: SDD",
