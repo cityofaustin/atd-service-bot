@@ -108,7 +108,7 @@ FIELDS = [
             "Project Delivery": "Workgroup: PDD",
             "Public Information Office": "Workgroup: PIO",
             "Right-of-Way": "Workgroup: ROW",
-            "Signs & Markings": "Workgroup: SDD",
+            "Signs & Markings": "Workgroup: SMD",
             "Smart Mobility Office": "Workgroup: SMO",
             "Shared Mobility Services": "Workgroup: SMS",
             "Systems Development": "Workgroup: SDD",
