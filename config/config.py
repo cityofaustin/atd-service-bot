@@ -107,7 +107,7 @@ FIELDS = [
             "Parking Meters": "Workgroup: PE",
             "Public Information Office": "Workgroup: PIO",
             "Right-of-Way": "Workgroup: ROW",
-            "Signs & Markings": "Workgroup: SMB",
+            "Signs & Markings": "Workgroup: SDD",
             "Smart Mobility Office": "Workgroup: SMO",
             "Shared Mobility Services": "Workgroup: SMS",
             "Systems Development": "Workgroup: SDD",
