@@ -73,7 +73,7 @@ def convert_timestamps(issues):
 
 
 def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
-    url = f"https://api.zenhub.io/p2/workspaces/{workspace_id}/repositories/{repo_id}/board"
+    url = f"https://api.zenhub.com/p2/workspaces/{workspace_id}/repositories/{repo_id}/board"
     params = {"access_token": token}
     res = requests.get(url, params=params, timeout=timeout)
     res.raise_for_status()
