@@ -30,6 +30,7 @@ import os
 
 from github import Github
 
+
 def parse_list(values):
     return [val.strip() for val in values.split(",")]
 
