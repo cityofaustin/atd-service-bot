@@ -16,6 +16,7 @@ WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
 SOCRATA_RESOURCE_ID = "rzwg-fyv8"
 ZENHUB_ACCESS_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
+SOCRATA_ENDPOINT = os.environ["SOCRATA_ENDPOINT"]
 SOCRATA_API_KEY_ID = os.environ["SOCRATA_API_KEY_ID"]
 SOCRATA_API_KEY_SECRET = os.environ["SOCRATA_API_KEY_SECRET"]
 SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
@@ -126,7 +127,7 @@ def main():
         )
 
     client = sodapy.Socrata(
-        "data.austintexas.gov",
+        SOCRATA_ENDPOINT,
         SOCRATA_APP_TOKEN,
         username=SOCRATA_API_KEY_ID,
         password=SOCRATA_API_KEY_SECRET,
