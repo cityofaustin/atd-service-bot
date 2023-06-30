@@ -38,12 +38,11 @@ REPO = "atd-data-tech"
 
 
 def map_issue(issue, fields):
-
     github_issue = {
         "description": "",
         "labels": [],
         "title": "",
-        "github_url": None,
+        "github_url": None,  # TODO: doesn't seem to be used anymore? built with formula in Knack (field_396)
         "knack_id": None,
         "repo": REPO,  # hardcoded since we switched to a monorepo
     }
@@ -82,7 +81,6 @@ def map_issue(issue, fields):
             github_issue[field["github"]] = new_value
 
         elif field["method"] == "transform_merge":
-
             untransformed = issue[knack_field_id]
 
             # get the transform function
@@ -93,7 +91,6 @@ def map_issue(issue, fields):
             old_value = github_issue[field["github"]]
 
             if field.get("rename"):
-
                 knack_field_label = field.get("rename")
 
             if field.get("format") == "no_label":
@@ -112,7 +109,6 @@ def map_issue(issue, fields):
             github_issue[field["github"]] = new_value
 
         elif field["method"] == "map_append":
-
             val_mapped = field["map"].get(knack_field_value)
 
             if val_mapped:
@@ -210,7 +206,7 @@ def main():
         result = repo.create_issue(
             title=issue["title"],
             labels=issue.get("labels"),
-            assignees=issue.get("assignee"),
+            assignees=issue.get("assignee"),  # TODO: doesn't seem to be used anymore?
             body=issue["description"],
         )
 
