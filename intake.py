@@ -42,7 +42,7 @@ def map_issue(issue, fields):
         "description": "",
         "labels": [],
         "title": "",
-        "github_url": None,  # TODO: doesn't seem to be used anymore? built with formula in Knack (field_396)
+        "github_url": None,
         "knack_id": None,
         "repo": REPO,  # hardcoded since we switched to a monorepo
     }
@@ -206,7 +206,7 @@ def main():
         result = repo.create_issue(
             title=issue["title"],
             labels=issue.get("labels"),
-            assignees=issue.get("assignee"),  # TODO: doesn't seem to be used anymore?
+            assignees=issue.get("assignee"),
             body=issue["description"],
         )
 
