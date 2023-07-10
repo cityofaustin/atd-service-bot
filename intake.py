@@ -38,7 +38,6 @@ REPO = "atd-data-tech"
 
 
 def map_issue(issue, fields):
-
     github_issue = {
         "description": "",
         "labels": [],
@@ -82,7 +81,6 @@ def map_issue(issue, fields):
             github_issue[field["github"]] = new_value
 
         elif field["method"] == "transform_merge":
-
             untransformed = issue[knack_field_id]
 
             # get the transform function
@@ -93,7 +91,6 @@ def map_issue(issue, fields):
             old_value = github_issue[field["github"]]
 
             if field.get("rename"):
-
                 knack_field_label = field.get("rename")
 
             if field.get("format") == "no_label":
@@ -112,7 +109,6 @@ def map_issue(issue, fields):
             github_issue[field["github"]] = new_value
 
         elif field["method"] == "map_append":
-
             val_mapped = field["map"].get(knack_field_value)
 
             if val_mapped:
