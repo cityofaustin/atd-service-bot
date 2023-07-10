@@ -237,18 +237,3 @@ FIELDS = [
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
 ]
-
-ASSIGNEES = {
-    "severe_urgent": [
-        "TracyLinder",
-        "amenity",
-        "dianamartin",
-        "SurbhiBakshi",
-        "Nadin-Nader",
-    ],
-    "amanda": ["TracyLinder", "Nadin-Nader"],
-    "gis": ["jaime-mckeown", "alan-deanda"],
-    "new_projects": ["TracyLinder", "amenity"],
-    "type_other": ["TracyLinder", "amenity", "dianamartin", "SurbhiBakshi"],
-    "catch_all": ["amenity", "dianamartin", "SurbhiBakshi"],
-}
