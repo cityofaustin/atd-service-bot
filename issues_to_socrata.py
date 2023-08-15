@@ -6,6 +6,7 @@ import datetime
 import logging
 import os
 import sys
+import re
 
 from github import Github
 import requests
@@ -32,12 +33,22 @@ def extract_workgroups_from_labels(labels):
     return ", ".join(workgroup_labels_no_prefix) or None
 
 
-def get_github_issues(repo_name, github_access_token, state="all"):
+def get_github_issues(repo_name, github_access_token, state="open"):
     g = Github(github_access_token)
     repo = g.get_repo(repo_name)
     issues_metadata = repo.get_issues(state=state)
     return [issue for issue in issues_metadata]
 
+def remove_html_comments(text):
+    if not isinstance(text, str):
+        return text  # Return as-is if not a string
+    # Remove HTML comments using regular expression
+    return re.sub(r'<!--(.*?)-->', '', text, flags=re.DOTALL)
+
+def preprocess_issue_description(description):
+    # Apply both transformations
+    description = remove_html_comments(description)
+    return description
 
 def issue_to_dict(issue):
     """breakdown pygithub classes into dicts"""
@@ -63,6 +74,10 @@ def issue_to_dict(issue):
         "url",
     ]:
         issue_dict[attr] = getattr(issue, attr)
+    
+    # Preprocess issue description using the new function
+    issue_dict["body"] = preprocess_issue_description(issue_dict["body"])
+    
     return issue_dict
 
 
