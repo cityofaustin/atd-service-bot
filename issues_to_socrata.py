@@ -45,11 +45,6 @@ def remove_html_comments(text):
     # Remove HTML comments using regular expression
     return re.sub(r'<!--(.*?)-->', '', text, flags=re.DOTALL)
 
-def preprocess_issue_description(description):
-    # Apply both transformations
-    description = remove_html_comments(description)
-    return description
-
 def issue_to_dict(issue):
     """breakdown pygithub classes into dicts"""
     issue_dict = {}
@@ -76,7 +71,7 @@ def issue_to_dict(issue):
         issue_dict[attr] = getattr(issue, attr)
     
     # Preprocess issue description using the new function
-    issue_dict["body"] = preprocess_issue_description(issue_dict["body"])
+    issue_dict["body"] = remove_html_comments(issue_dict["body"])
     
     return issue_dict
 
