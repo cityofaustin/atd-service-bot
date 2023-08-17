@@ -34,7 +34,7 @@ def extract_workgroups_from_labels(labels):
     return ", ".join(workgroup_labels_no_prefix) or None
 
 
-def get_github_issues(repo_name, github_access_token, state="open"):
+def get_github_issues(repo_name, github_access_token, state="all"):
     g = Github(github_access_token)
     repo = g.get_repo(repo_name)
     issues_metadata = repo.get_issues(state=state)
