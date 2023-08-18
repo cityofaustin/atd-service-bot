@@ -6,6 +6,7 @@ import datetime
 import logging
 import os
 import sys
+import re
 
 from github import Github
 import requests
@@ -20,6 +21,7 @@ SOCRATA_ENDPOINT = os.environ["SOCRATA_ENDPOINT"]
 SOCRATA_API_KEY_ID = os.environ["SOCRATA_API_KEY_ID"]
 SOCRATA_API_KEY_SECRET = os.environ["SOCRATA_API_KEY_SECRET"]
 SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
+
 
 def extract_workgroups_from_labels(labels):
     """Extract a comma-separated list of workgroup names from "Workgroup: Xyz" labels"""
@@ -37,6 +39,13 @@ def get_github_issues(repo_name, github_access_token, state="all"):
     repo = g.get_repo(repo_name)
     issues_metadata = repo.get_issues(state=state)
     return [issue for issue in issues_metadata]
+
+
+def remove_html_comments(text):
+    if not isinstance(text, str):
+        return text  # Return as-is if not a string
+    # Remove HTML comments using regular expression
+    return re.sub(r"<!--(.*?)-->", "", text, flags=re.DOTALL)
 
 
 def issue_to_dict(issue):
@@ -63,6 +72,10 @@ def issue_to_dict(issue):
         "url",
     ]:
         issue_dict[attr] = getattr(issue, attr)
+
+    # Preprocess issue description using the new function
+    issue_dict["body"] = remove_html_comments(issue_dict["body"])
+
     return issue_dict
 
 
