@@ -206,7 +206,7 @@ FIELDS = [
             "SMD Data Tracker": "Product: SMD Data Tracker",
             "Street Banner Program Portal": "Product: Street Banner Program Portal",
             "Traffic Register": "Product: Traffic Register",
-            "Transportation Development Services Portal": "Product: Transportation Development Services Portal",
+            "Transportation Development Services Portal": "Product: TDS Portal",
             "Vision Zero Editor": "Product: Vision Zero Crash Data System",
             "Vision Zero Viewer": "Product: Vision Zero Viewer",
             "Vision Zero in Action": "Product: Vision Zero In Action",
