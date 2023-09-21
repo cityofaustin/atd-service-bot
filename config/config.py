@@ -187,15 +187,15 @@ FIELDS = [
     {
         "knack": "field_",  # What do you need?
         "github": "labels",
-        "method": "map_append",
+        "method": "map_append_all",
         "map": {
-            "Map": "Service: Geo",
-            "GIS Data": "Service: Geo",
-            "ArcGIS Training": "Service: Geo",
-            "ArcGIS Online Access": "Service: Geo",
-            "ArcGIS Online Support": "Type: IT Support",
-            "ArcGIS Pro Support": "Service: Geo",
-            "ArcGIS Pro Installation": "Service: Geo",
+            "Map": ["Service: Geo", "Type: Map Request"],
+            "GIS Data": ["Service: Geo", "Type: Data"],
+            "ArcGIS Training": ["Service: Geo", "Type: Training"],
+            "ArcGIS Online Access": ["Service: Geo", "Type: IT Support"],
+            "ArcGIS Online Support": ["Type: IT Support", "Type: Data"],
+            "ArcGIS Pro Support": ["Service: Geo", "Type: Data"],
+            "ArcGIS Pro Installation": ["Service: Geo", "Type: IT Support"],
         },
     },
     {
