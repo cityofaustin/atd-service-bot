@@ -178,10 +178,24 @@ FIELDS = [
         "map": {
             "Bug Report — Something is not working": "Type: Bug Report",
             "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
-            "GIS or Maps": "Service: Geo",
+            "Geospatial Services (GIS, Maps, etc.)": "Service: Geo",
             "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
             "IT Support — Help with licenses, accounts, hardware, etc.": "Type: IT Support",
             "Something Else": "Type: Other",
+        },
+    },
+    {
+        "knack": "field_",  # What do you need?
+        "github": "labels",
+        "method": "map_append",
+        "map": {
+            "Map": "Service: Geo",
+            "GIS Data": "Service: Geo",
+            "ArcGIS Training": "Service: Geo",
+            "ArcGIS Online Access": "Service: Geo",
+            "ArcGIS Online Support": "Type: IT Support",
+            "ArcGIS Pro Support": "Service: Geo",
+            "ArcGIS Pro Installation": "Service: Geo",
         },
     },
     {
