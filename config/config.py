@@ -193,7 +193,7 @@ FIELDS = [
             "GIS Data": ["Service: Geo", "Type: Data"],
             "ArcGIS Training": ["Service: Geo", "Type: Training"],
             "ArcGIS Online Access": ["Service: Geo", "Type: IT Support"],
-            "ArcGIS Online Support": ["Type: IT Support", "Type: Data"],
+            "ArcGIS Online Support": ["Service: Geo", "Type: Data"],
             "ArcGIS Pro Support": ["Service: Geo", "Type: Data"],
             "ArcGIS Pro Installation": ["Service: Geo", "Type: IT Support"],
         },
