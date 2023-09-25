@@ -114,6 +114,13 @@ def map_issue(issue, fields):
             if val_mapped:
                 github_issue[field["github"]].append(val_mapped)
 
+        elif field["method"] == "map_append_all":
+            vals_mapped = field["map"].get(knack_field_value)
+
+            if vals_mapped:
+                for val_mapped in vals_mapped:
+                    github_issue[field["github"]].append(val_mapped)
+
         elif field["method"] == "copy":
             github_issue[field["github"]] = knack_field_value
 
