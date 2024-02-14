@@ -120,7 +120,7 @@ FIELDS = [
             "Public Information Office": "Workgroup: PIO",
             "Right of Way Management": "Workgroup: ROW",
             "Shared Mobility Services": "Workgroup: SMS",
-            "Sidewalks & Special Projects": "Workgroup: SSPD",
+            "Sidewalks & Urban Trails": "Workgroup: SUTD",
             "Signs & Markings": "Workgroup: SMD",
             "Smart Mobility Office": "Workgroup: SMO",
             "Strategic Projects Program": "Workgroup: SPP",
