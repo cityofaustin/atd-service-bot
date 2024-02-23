@@ -157,7 +157,7 @@ def main():
             first_chunk = False
         client.upsert(SOCRATA_RESOURCE_ID, issues)
         count_processed += len(chunk)
-        logging.info(f"{len(chunk)} processed of {len(issues)}")
+        logging.info(f"{count_processed} processed of {len(issues)}")
     logging.info(f"Done uploading issues to Socrata")
 
 
