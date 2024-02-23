@@ -149,15 +149,16 @@ def main():
 
     logging.info(f"Uploading to Socrata...")
     first_chunk = True
-    count_chunks = 0
+    count_processed = 0
     for chunk in chunks(issues, 1000):
         if first_chunk:
             # completely replace dataset to ensure deleted issues are flushed
             client.replace(SOCRATA_RESOURCE_ID, issues)
             first_chunk = False
         client.upsert(SOCRATA_RESOURCE_ID, issues)
-        count_chunks += 1
-        logging.info(f"{len(chunk) * count_chunks} processed")
+        count_processed += len(chunk)
+        logging.info(f"{len(chunk)} processed of {len(issues)}")
+    logging.info(f"Done uploading issues to Socrata")
 
 
 if __name__ == "__main__":
