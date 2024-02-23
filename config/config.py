@@ -22,7 +22,7 @@ FIELDS = [
         "github": "title",
         "method": "copy",
         "format": "none",
-    },  # Describe the problem (duplicated because this goes into the title and decsription body)
+    },  # Describe the problem (duplicated because this goes into the title and description body)
     {
         "knack": "field_399",  # App name
         "github": "description",
@@ -34,7 +34,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    },  # Describe the problem (duplicated because this goes into the title and decsription body)
+    },  # Describe the problem (duplicated because this goes into the title and description body)
     {
         "knack": "field_414",
         "github": "description",
@@ -120,7 +120,7 @@ FIELDS = [
             "Public Information Office": "Workgroup: PIO",
             "Right of Way Management": "Workgroup: ROW",
             "Shared Mobility Services": "Workgroup: SMS",
-            "Sidewalks & Urban Trails": "Workgroup: SUTD",
+            "Sidewalk & Urban Trails": "Workgroup: SUTD",
             "Signs & Markings": "Workgroup: SMD",
             "Smart Mobility Office": "Workgroup: SMO",
             "Strategic Projects Program": "Workgroup: SPP",
