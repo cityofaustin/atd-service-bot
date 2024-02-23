@@ -124,7 +124,7 @@ def main():
     logging.info("Converting timestamps...")
     convert_timestamps(issues)
 
-    logging.info("Fetching zenhub data...")
+    logging.info("Fetching Zenhub data...")
     zenhub_metadata = get_zenhub_metadata(WORKSPACE_ID, ZENHUB_ACCESS_TOKEN, REPO["id"])
     zenhub_metadata_index = create_zenhub_metadata_index(zenhub_metadata)
 
@@ -149,13 +149,16 @@ def main():
 
     logging.info(f"Uploading to Socrata...")
     first_chunk = True
+    count_processed = 0
     for chunk in chunks(issues, 1000):
         if first_chunk:
             # completely replace dataset to ensure deleted issues are flushed
             client.replace(SOCRATA_RESOURCE_ID, issues)
             first_chunk = False
         client.upsert(SOCRATA_RESOURCE_ID, issues)
-        logging.info(f"{len(chunk)} processed")
+        count_processed += len(chunk)
+        logging.info(f"{count_processed} processed of {len(issues)}")
+    logging.info(f"Done uploading issues to Socrata")
 
 
 if __name__ == "__main__":
