@@ -11,12 +11,50 @@ import os
 import sys
 
 from github import Github
+import requests
 import knackpy
 
 
+ZENHUB_REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
+WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
+ZENHUB_ACCESS_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
+KNACK_API_KEY = os.environ["KNACK_API_KEY"]
+KNACK_APP_ID = os.environ["KNACK_APP_ID"]
+GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
+REPO = "cityofaustin/atd-data-tech"
+KNACK_OBJ = "object_30"
+KNACK_TITLE_FIELD = "field_538"
+KNACK_ISSUE_NUMBER_FIELD = "field_492"
+
+
+def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
+    url = f"https://api.zenhub.com/p2/workspaces/{workspace_id}/repositories/{repo_id}/board"
+    params = {"access_token": token}
+    res = requests.get(url, params=params, timeout=timeout)
+    res.raise_for_status()
+    return res.json()
+
+
+def find_pipeline_by_issue(data, issue_number):
+    for pipeline in data["pipelines"]:
+        for issue in pipeline["issues"]:
+            if issue["issue_number"] == issue_number:
+                return pipeline["name"]
+    return None
+
+
 def build_payload(project_records, project_issues, title_field, issue_number_field):
+
+    zenhub_metadata = get_zenhub_metadata(
+        WORKSPACE_ID, ZENHUB_ACCESS_TOKEN, ZENHUB_REPO["id"]
+    )
+
     payload = []
     for issue in project_issues:
+
+        pipeline = find_pipeline_by_issue(zenhub_metadata, issue.number)
+        print(f"Pipeline for issue {issue.number}: {pipeline}")
+
         # search for a corresponding Knack record for each project issue
         matched = False
         for record in project_records:
@@ -40,13 +78,6 @@ def build_payload(project_records, project_issues, title_field, issue_number_fie
 
 def main():
     logging.info("Starting...")
-    KNACK_API_KEY = os.environ["KNACK_API_KEY"]
-    KNACK_APP_ID = os.environ["KNACK_APP_ID"]
-    GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
-    REPO = "cityofaustin/atd-data-tech"
-    KNACK_OBJ = "object_30"
-    KNACK_TITLE_FIELD = "field_538"
-    KNACK_ISSUE_NUMBER_FIELD = "field_492"
 
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
     project_records = app.get(KNACK_OBJ)
@@ -58,14 +89,19 @@ def main():
     project_issues = [issue for issue in project_issues_paginator]
 
     knack_payload = build_payload(
-        project_records, project_issues, KNACK_TITLE_FIELD, KNACK_ISSUE_NUMBER_FIELD
+        project_records,
+        project_issues,
+        KNACK_TITLE_FIELD,
+        KNACK_ISSUE_NUMBER_FIELD,
     )
 
     logging.info(f"Creating/updating {len(knack_payload)} issues")
 
-    for record in knack_payload:
-        method = "update" if record.get("id") else "create"
-        app.record(data=record, method=method, obj=KNACK_OBJ)
+    print(knack_payload)
+
+    # for record in knack_payload:
+    #     method = "update" if record.get("id") else "create"
+    #     app.record(data=record, method=method, obj=KNACK_OBJ)
 
     logging.info(f"{len(knack_payload)} records processed.")
 
