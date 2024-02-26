@@ -7,3 +7,4 @@ services:
       - .env
     volumes:
       - .:/app
+    entrypoint: /bin/bash
