@@ -105,8 +105,6 @@ def main():
 
     logging.info(f"Creating/updating {len(knack_payload)} issues")
 
-    # print(knack_payload)
-
     for record in knack_payload:
         method = "update" if record.get("id") else "create"
         print(f"Data: {record}, Method: {method}, Obj: {KNACK_OBJ}")
