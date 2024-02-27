@@ -44,6 +44,12 @@ def find_pipeline_by_issue(data, issue_number):
                 return pipeline["name"]
     return None
 
+def find_knack_record_by_issue(knack_records, issue_number):
+    for record in knack_records:
+        if record[KNACK_ISSUE_NUMBER_FIELD] == issue_number:
+            return record
+    return None
+
 
 def build_payload(
     project_records, project_issues, title_field, issue_number_field, pipeline_field
@@ -53,20 +59,18 @@ def build_payload(
     )
 
     payload = []
-    for issue in project_issues:
+    for issue in project_issues:  # iterate over gh issues
+        if not issue.number:
+            continue  # escape early, no issue number
+
         pipeline = find_pipeline_by_issue(zenhub_metadata, issue.number)
-        # print(f"Pipeline for issue {issue.number}: {pipeline}")
+        knack_record = find_knack_record_by_issue(project_records, issue.number)
 
-        # search for a corresponding Knack record for each project issue
-        for record in project_records:
-            issue_number_knack = record[issue_number_field]
-            if not issue_number_knack or issue_number_knack != issue.number:
-                continue
-
-            title_knack = record[title_field]
-            pipeline_knack = record[pipeline_field]
-
+        if knack_record:
             issue_payload = {issue_number_field: issue.number}
+            title_knack = knack_record[title_field]
+            pipeline_knack = knack_record[pipeline_field]
+
             if title_knack != issue.title:
                 issue_payload[title_field] = issue.title
             if pipeline_knack != pipeline:
@@ -74,12 +78,10 @@ def build_payload(
             if title_knack != issue.title or pipeline_knack != pipeline:
                 payload.append(issue_payload)
         else:
-            # this issue needs a new project record created in Knack
             issue_payload = {issue_number_field: issue.number, title_field: issue.title}
             if pipeline is not None:
                 issue_payload[pipeline_field] = pipeline
             payload.append(issue_payload)
-
     return payload
 
 
