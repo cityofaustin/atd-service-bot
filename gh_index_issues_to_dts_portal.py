@@ -25,8 +25,7 @@ REPO = "cityofaustin/atd-data-tech"
 KNACK_OBJ = "object_30"
 KNACK_TITLE_FIELD = "field_538"
 KNACK_ISSUE_NUMBER_FIELD = "field_492"
-KNACK_PIPELINE_FIELD = "field_584"  # development
-# KNACK_PIPELINE_FIELD = "field_649"  # production
+KNACK_PIPELINE_FIELD = "field_649"  # production
 
 
 def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
@@ -43,6 +42,7 @@ def find_pipeline_by_issue(data, issue_number):
             if issue["issue_number"] == issue_number:
                 return pipeline["name"]
     return None
+
 
 def find_knack_record_by_issue(knack_records, issue_number):
     for record in knack_records:
@@ -67,7 +67,7 @@ def build_payload(
         knack_record = find_knack_record_by_issue(project_records, issue.number)
 
         if knack_record:
-            issue_payload = {issue_number_field: issue.number}
+            issue_payload = {"id": knack_record["id"]}
             title_knack = knack_record[title_field]
             pipeline_knack = knack_record[pipeline_field]
 
@@ -106,17 +106,9 @@ def main():
     )
 
     logging.info(f"Creating/updating {len(knack_payload)} issues")
-
     for record in knack_payload:
         method = "update" if record.get("id") else "create"
-        print(f"Data: {record}, Method: {method}, Obj: {KNACK_OBJ}")
-
-        # this is 400'ing because the private api doesn't have the
-        # pipeline field in it, I think. I need to check with Karo
-        # & Christina
-
-        # app.record(data=record, method=method, obj=KNACK_OBJ)
-
+        app.record(data=record, method=method, obj=KNACK_OBJ)
     logging.info(f"{len(knack_payload)} records processed.")
 
 
