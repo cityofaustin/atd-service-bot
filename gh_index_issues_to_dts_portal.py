@@ -77,6 +77,11 @@ def build_payload(project_records, project_issues):
     payload = []
     for issue in project_issues:  # iterate over gh issues
         pipeline = find_pipeline_by_issue(zenhub_metadata, issue.number)
+
+        # ZH metadata does not include closed issues
+        if issue.state == "closed":
+            pipeline = "Closed"
+
         knack_record = find_knack_record_by_issue(project_records, issue.number)
 
         if knack_record:
