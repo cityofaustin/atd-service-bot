@@ -1,9 +1,11 @@
 # atd-service-bot
+
 A bot that creates github issues from our Knack-based intake form.
 
 ## Get it going
 
-1. Configure these environmental variables, which you can grab from 1Password:
+Place the following environment variables in `.env`, which you can grab from 1Password:
+
 - KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME
 - KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD
 - KNACK_API_KEY
@@ -16,9 +18,22 @@ A bot that creates github issues from our Knack-based intake form.
 - SOCRATA_APP_TOKEN
 - SOCRATA_RESOURCE_ID (of the Socrata dataset for issues)
 
-2. Pull the docker image (`atddocker/atd-service-bot`) or install the package dependencies: `pip install -r requirements.txt`
+* Run this command to build the docker container:
 
-3. Run `python intake.py`
+```bash
+docker compose build
+```
+
+- Run this command to be dropped into a development environment that simulates the
+  the environment that the docker container / program will be in when it's kicked off by
+  airflow.
+
+```bash
+docker compose run service-bot
+```
+
+- While inside the shell provided by the container, you can run the scripts, and you
+  are able to continue to edit them outside of the container because they are bind-mounted in.
 
 ## How it works
 
