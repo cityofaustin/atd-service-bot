@@ -29,9 +29,11 @@ The bot runs on Airflow and fetches new service requests from our Knack app. It 
 Keeping our bot happy is contingent on not changing the information our bot expects to process.
 
 You must update `config/config.py` if you change any of these things in the DTS Knack app:
+
 - Workgroup names
 - Any pre-defined choice-list options (impact, need, application, workgroup, etc)
 
 ...or if you change any of these things on github:
+
 - repo names
 - labels
