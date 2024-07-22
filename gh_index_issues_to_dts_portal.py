@@ -28,6 +28,8 @@ KNACK_OBJ = "object_30"
 KNACK_TITLE_FIELD = "field_538"
 KNACK_ISSUE_NUMBER_FIELD = "field_492"
 KNACK_PIPELINE_FIELD = "field_649"  # production
+KNACK_COMMENT_FIELD = "field_688"
+KNACK_COMMENT_DATE_FIELD = "field_689"
 
 
 def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
@@ -77,6 +79,18 @@ def build_payload(project_records, project_issues):
     payload = []
     for issue in project_issues:  # iterate over gh issues
         pipeline = find_pipeline_by_issue(zenhub_metadata, issue.number)
+        last_comment_body = None
+        last_comment_date = None
+
+        comments = issue.get_comments()
+        comments_list = [comment for comment in comments]
+        if len(comments_list) > 0:
+            last_comment = comments_list[-1]
+            if str(issue.number) != last_comment.issue_url[-5:]:
+                print("NO", issue.number, last_comment.issue_url[-5:])
+            last_comment_body = last_comment.body
+            last_comment_date = last_comment.created_at
+            print(issue.number, comments_list[-1].body, comments_list[-1].created_at, comments_list[-1].issue_url)
 
         # ZH metadata does not include closed issues
         if issue.state == "closed":
@@ -85,16 +99,25 @@ def build_payload(project_records, project_issues):
         knack_record = find_knack_record_by_issue(project_records, issue.number)
 
         if knack_record:
+            update_record = False
             issue_payload = {"id": knack_record["id"]}
             title_knack = knack_record[KNACK_TITLE_FIELD]
             pipeline_knack = knack_record[KNACK_PIPELINE_FIELD]
+            last_comment_date_knack = knack_record[KNACK_COMMENT_DATE_FIELD]
 
             if title_knack != issue.title:
                 issue_payload[KNACK_TITLE_FIELD] = issue.title
+                update_record = True
             if pipeline_knack != pipeline:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
-            if title_knack != issue.title or pipeline_knack != pipeline:
+                update_record = True
+            if last_comment_date_knack != last_comment_date:
+                issue_payload[KNACK_COMMENT_FIELD] = last_comment_body
+                issue_payload[KNACK_COMMENT_DATE_FIELD] = str(last_comment_date)
+                update_record = True
+            if update_record:
                 payload.append(issue_payload)
+
         else:
             issue_payload = {
                 KNACK_ISSUE_NUMBER_FIELD: issue.number,
@@ -102,6 +125,10 @@ def build_payload(project_records, project_issues):
             }
             if pipeline is not None:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
+            if last_comment_body is not None:
+                issue_payload[KNACK_COMMENT_FIELD] = last_comment_body
+                issue_payload[KNACK_COMMENT_DATE_FIELD] = str(last_comment_date)
+
             payload.append(issue_payload)
     return payload
 
