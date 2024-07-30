@@ -79,18 +79,15 @@ def build_payload(project_records, project_issues):
     payload = []
     for issue in project_issues:  # iterate over gh issues
         pipeline = find_pipeline_by_issue(zenhub_metadata, issue.number)
+
         last_comment_body = None
         last_comment_date = None
-
         comments = issue.get_comments()
         comments_list = [comment for comment in comments]
         if len(comments_list) > 0:
             last_comment = comments_list[-1]
-            if str(issue.number) != last_comment.issue_url[-5:]:
-                print("NO", issue.number, last_comment.issue_url[-5:])
             last_comment_body = last_comment.body
             last_comment_date = last_comment.created_at
-            print(issue.number, comments_list[-1].body, comments_list[-1].created_at, comments_list[-1].issue_url)
 
         # ZH metadata does not include closed issues
         if issue.state == "closed":
