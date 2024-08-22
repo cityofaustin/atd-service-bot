@@ -160,6 +160,7 @@ def main():
     logging.info("Starting...")
 
     # setup and get the knack records
+    logging.info("Downloading records from Knack")
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
     project_records = app.get(KNACK_OBJ)
 
@@ -168,10 +169,12 @@ def main():
     repo = g.get_repo(REPO)
 
     # iterate over the github client's issues and build our working data
+    logging.info("Downloading issues from github")
     project_issues_paginator = repo.get_issues(state="all", labels=["Project Index"])
     project_issues = [issue for issue in project_issues_paginator]
 
     # build the payload out of the github and knack state of the data
+    logging.info("Building payload...")
     knack_payload = build_payload(
         project_records,
         project_issues,
