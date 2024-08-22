@@ -28,8 +28,9 @@ KNACK_OBJ = "object_30"
 KNACK_TITLE_FIELD = "field_538"
 KNACK_ISSUE_NUMBER_FIELD = "field_492"
 KNACK_PIPELINE_FIELD = "field_649"  # production
-KNACK_COMMENT_FIELD = "field_688"
-KNACK_COMMENT_DATE_FIELD = "field_689"
+KNACK_COMMENT_FIELD = "field_688"  # staging field
+KNACK_COMMENT_DATE_FIELD = "field_689"  # staging field
+KNACK_ISSUE_ASSIGNEE = "field_690"  # staging field
 
 
 def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
@@ -66,6 +67,18 @@ def find_knack_record_by_issue(knack_records, issue_number):
     return None
 
 
+def are_timestamps_different(knack_timestamp, issue_timestamp):
+    """
+    Returns true if the stored comment timestamp in knack differs from the issues timestamp
+    """
+    if not knack_timestamp:
+        if issue_timestamp:
+            return True
+        else:
+            return False
+    return knack_timestamp['date'] != issue_timestamp.strftime('%m/%d/%Y')
+
+
 def build_payload(project_records, project_issues):
     """
     Build a payload to update knack records based on github issues and Zenhub metadata.
@@ -83,6 +96,10 @@ def build_payload(project_records, project_issues):
         last_comment_body = None
         last_comment_date = None
         comments = issue.get_comments()
+        # an issue often has more than one assignee, this returns the list of users assigned to the issue
+        assignees = issue.assignees
+        assignees_logins = [user.login for user in assignees]
+        assignees_string = " ".join(assignees_logins)
         comments_list = [comment for comment in comments]
         if len(comments_list) > 0:
             last_comment = comments_list[-1]
@@ -101,6 +118,7 @@ def build_payload(project_records, project_issues):
             title_knack = knack_record[KNACK_TITLE_FIELD]
             pipeline_knack = knack_record[KNACK_PIPELINE_FIELD]
             last_comment_date_knack = knack_record[KNACK_COMMENT_DATE_FIELD]
+            assignee_knack = knack_record[KNACK_ISSUE_ASSIGNEE] if knack_record[KNACK_ISSUE_ASSIGNEE] else ""
 
             if title_knack != issue.title:
                 issue_payload[KNACK_TITLE_FIELD] = issue.title
@@ -108,9 +126,12 @@ def build_payload(project_records, project_issues):
             if pipeline_knack != pipeline:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
                 update_record = True
-            if last_comment_date_knack != last_comment_date:
+            if are_timestamps_different(last_comment_date_knack, last_comment_date):
                 issue_payload[KNACK_COMMENT_FIELD] = last_comment_body
                 issue_payload[KNACK_COMMENT_DATE_FIELD] = str(last_comment_date)
+                update_record = True
+            if assignee_knack != assignees_string:
+                issue_payload[KNACK_ISSUE_ASSIGNEE] = assignees_string
                 update_record = True
             if update_record:
                 payload.append(issue_payload)
@@ -119,6 +140,7 @@ def build_payload(project_records, project_issues):
             issue_payload = {
                 KNACK_ISSUE_NUMBER_FIELD: issue.number,
                 KNACK_TITLE_FIELD: issue.title,
+                KNACK_ISSUE_ASSIGNEE: assignees_string,
             }
             if pipeline is not None:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
