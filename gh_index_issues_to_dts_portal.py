@@ -76,7 +76,7 @@ def are_timestamps_different(knack_timestamp, issue_timestamp):
             return True
         else:
             return False
-    return knack_timestamp['date'] != issue_timestamp.strftime('%m/%d/%Y')
+    return knack_timestamp["date"] != issue_timestamp.strftime("%m/%d/%Y")
 
 
 def build_payload(project_records, project_issues):
@@ -118,7 +118,11 @@ def build_payload(project_records, project_issues):
             title_knack = knack_record[KNACK_TITLE_FIELD]
             pipeline_knack = knack_record[KNACK_PIPELINE_FIELD]
             last_comment_date_knack = knack_record[KNACK_COMMENT_DATE_FIELD]
-            assignee_knack = knack_record[KNACK_ISSUE_ASSIGNEE] if knack_record[KNACK_ISSUE_ASSIGNEE] else ""
+            assignee_knack = (
+                knack_record[KNACK_ISSUE_ASSIGNEE]
+                if knack_record[KNACK_ISSUE_ASSIGNEE]
+                else ""
+            )
 
             if title_knack != issue.title:
                 issue_payload[KNACK_TITLE_FIELD] = issue.title
