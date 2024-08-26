@@ -67,18 +67,6 @@ def find_knack_record_by_issue(knack_records, issue_number):
     return None
 
 
-def are_timestamps_different(knack_timestamp, issue_timestamp):
-    """
-    Returns true if the stored comment timestamp in knack differs from the issues timestamp
-    """
-    if not knack_timestamp:
-        if issue_timestamp:
-            return True
-        else:
-            return False
-    return knack_timestamp["date"] != issue_timestamp.strftime("%m/%d/%Y")
-
-
 def build_payload(project_records, project_issues):
     """
     Build a payload to update knack records based on github issues and Zenhub metadata.
@@ -117,7 +105,7 @@ def build_payload(project_records, project_issues):
             issue_payload = {"id": knack_record["id"]}
             title_knack = knack_record[KNACK_TITLE_FIELD]
             pipeline_knack = knack_record[KNACK_PIPELINE_FIELD]
-            last_comment_date_knack = knack_record[KNACK_COMMENT_DATE_FIELD]
+            last_comment_knack = knack_record[KNACK_COMMENT_FIELD]
             assignee_knack = (
                 knack_record[KNACK_ISSUE_ASSIGNEE]
                 if knack_record[KNACK_ISSUE_ASSIGNEE]
@@ -130,7 +118,7 @@ def build_payload(project_records, project_issues):
             if pipeline_knack != pipeline:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
                 update_record = True
-            if are_timestamps_different(last_comment_date_knack, last_comment_date):
+            if last_comment_knack != last_comment_body:
                 issue_payload[KNACK_COMMENT_FIELD] = last_comment_body
                 issue_payload[KNACK_COMMENT_DATE_FIELD] = str(last_comment_date)
                 update_record = True
