@@ -15,6 +15,7 @@ import sys
 from github import Github
 import requests
 import knackpy
+import markdown
 
 
 ZENHUB_REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
@@ -96,6 +97,7 @@ def build_payload(project_records, project_issues):
         if len(comments_list) > 0:
             last_comment = comments_list[-1]
             last_comment_body = last_comment.body
+            last_comment_body = markdown.markdown(last_comment_body)
             last_comment_date = last_comment.created_at
 
         # ZH metadata does not include closed issues
