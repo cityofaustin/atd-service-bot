@@ -28,9 +28,13 @@ KNACK_OBJ = "object_30"
 KNACK_TITLE_FIELD = "field_538"
 KNACK_ISSUE_NUMBER_FIELD = "field_492"
 KNACK_PIPELINE_FIELD = "field_649"  # production
-KNACK_COMMENT_FIELD = "field_688"  # staging field
-KNACK_COMMENT_DATE_FIELD = "field_689"  # staging field
-KNACK_ISSUE_ASSIGNEE = "field_690"  # staging field
+KNACK_COMMENT_FIELD = "field_674"
+KNACK_COMMENT_DATE_FIELD = "field_676"
+KNACK_ISSUE_ASSIGNEE = "field_675"
+
+# KNACK_COMMENT_FIELD = "field_688"  # staging field
+# KNACK_COMMENT_DATE_FIELD = "field_689"  # staging field
+# KNACK_ISSUE_ASSIGNEE = "field_690"  # staging field
 
 
 def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
