@@ -15,6 +15,7 @@ import sys
 from github import Github
 import requests
 import knackpy
+import markdown
 
 
 ZENHUB_REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
@@ -28,6 +29,13 @@ KNACK_OBJ = "object_30"
 KNACK_TITLE_FIELD = "field_538"
 KNACK_ISSUE_NUMBER_FIELD = "field_492"
 KNACK_PIPELINE_FIELD = "field_649"  # production
+KNACK_COMMENT_FIELD = "field_674"
+KNACK_COMMENT_DATE_FIELD = "field_676"
+KNACK_ISSUE_ASSIGNEE = "field_675"
+
+# KNACK_COMMENT_FIELD = "field_688"  # staging field
+# KNACK_COMMENT_DATE_FIELD = "field_689"  # staging field
+# KNACK_ISSUE_ASSIGNEE = "field_690"  # staging field
 
 
 def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
@@ -78,6 +86,20 @@ def build_payload(project_records, project_issues):
     for issue in project_issues:  # iterate over gh issues
         pipeline = find_pipeline_by_issue(zenhub_metadata, issue.number)
 
+        last_comment_body = None
+        last_comment_date = None
+        comments = issue.get_comments()
+        # an issue often has more than one assignee, this returns the list of users assigned to the issue
+        assignees = issue.assignees
+        assignees_logins = [user.login for user in assignees]
+        assignees_string = " ".join(assignees_logins)
+        comments_list = [comment for comment in comments]
+        if len(comments_list) > 0:
+            last_comment = comments_list[-1]
+            last_comment_body = last_comment.body
+            last_comment_body = markdown.markdown(last_comment_body)
+            last_comment_date = last_comment.created_at
+
         # ZH metadata does not include closed issues
         if issue.state == "closed":
             pipeline = "Closed"
@@ -85,23 +107,45 @@ def build_payload(project_records, project_issues):
         knack_record = find_knack_record_by_issue(project_records, issue.number)
 
         if knack_record:
+            update_record = False
             issue_payload = {"id": knack_record["id"]}
             title_knack = knack_record[KNACK_TITLE_FIELD]
             pipeline_knack = knack_record[KNACK_PIPELINE_FIELD]
+            last_comment_knack = knack_record[KNACK_COMMENT_FIELD]
+            assignee_knack = (
+                knack_record[KNACK_ISSUE_ASSIGNEE]
+                if knack_record[KNACK_ISSUE_ASSIGNEE]
+                else ""
+            )
 
             if title_knack != issue.title:
                 issue_payload[KNACK_TITLE_FIELD] = issue.title
+                update_record = True
             if pipeline_knack != pipeline:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
-            if title_knack != issue.title or pipeline_knack != pipeline:
+                update_record = True
+            if last_comment_knack != last_comment_body:
+                issue_payload[KNACK_COMMENT_FIELD] = last_comment_body
+                issue_payload[KNACK_COMMENT_DATE_FIELD] = str(last_comment_date)
+                update_record = True
+            if assignee_knack != assignees_string:
+                issue_payload[KNACK_ISSUE_ASSIGNEE] = assignees_string
+                update_record = True
+            if update_record:
                 payload.append(issue_payload)
+
         else:
             issue_payload = {
                 KNACK_ISSUE_NUMBER_FIELD: issue.number,
                 KNACK_TITLE_FIELD: issue.title,
+                KNACK_ISSUE_ASSIGNEE: assignees_string,
             }
             if pipeline is not None:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
+            if last_comment_body is not None:
+                issue_payload[KNACK_COMMENT_FIELD] = last_comment_body
+                issue_payload[KNACK_COMMENT_DATE_FIELD] = str(last_comment_date)
+
             payload.append(issue_payload)
     return payload
 
@@ -110,6 +154,7 @@ def main():
     logging.info("Starting...")
 
     # setup and get the knack records
+    logging.info("Downloading records from Knack")
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
     project_records = app.get(KNACK_OBJ)
 
@@ -118,10 +163,12 @@ def main():
     repo = g.get_repo(REPO)
 
     # iterate over the github client's issues and build our working data
+    logging.info("Downloading issues from github")
     project_issues_paginator = repo.get_issues(state="all", labels=["Project Index"])
     project_issues = [issue for issue in project_issues_paginator]
 
     # build the payload out of the github and knack state of the data
+    logging.info("Building payload...")
     knack_payload = build_payload(
         project_records,
         project_issues,
