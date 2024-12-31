@@ -204,6 +204,7 @@ FIELDS = [
         "method": "map_append",
         "map": {
             "AMANDA": "Product: AMANDA",
+            "COORDINATE": "Product: COORDINATE",
             "AMD Data Tracker": "Product: AMD Data Tracker",
             "ArcGIS": "Service: Geo",
             "Data & Technology Services Portal": "Product: Data & Technology Services Portal",
