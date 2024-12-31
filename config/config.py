@@ -206,6 +206,7 @@ FIELDS = [
             "AMANDA": "Product: AMANDA",
             "AMD Data Tracker": "Product: AMD Data Tracker",
             "ArcGIS": "Service: Geo",
+            "COORDINATE": "Product: COORDINATE",
             "Data & Technology Services Portal": "Product: Data & Technology Services Portal",
             "Finance & Purchasing Portal": "Product: Finance & Purchasing Portal",
             "Human Resources Portal": "Product: Human Resources Portal",
