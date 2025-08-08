@@ -56,6 +56,8 @@ def issue_to_dict(issue):
 
     issue_dict["labels"] = ", ".join([label.name for label in issue.labels])
 
+    issue_dict["assignee_usernames"] = ", ".join([user.login for user in issue.assignees])
+
     issue_dict["milestone"] = (
         None if not getattr(issue, "milestone") else issue.milestone.title
     )
