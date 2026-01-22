@@ -11,7 +11,7 @@ import sys
 import json
 import requests
 from field_ids import zenhub_pipeline_ids
-from queries import geo_pipeline_query
+from zenhub_to_github.queries import geo_pipeline_query
 
 WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
 ZENHUB_ENDPOINT = "https://api.zenhub.com/public/graphql"
