@@ -40,6 +40,7 @@ def get_geo_issue_by_pipeline_request(*, query, pipeline_id, endpoint, admin_sec
     return issues
 
 
+# retrieves all issues from geo github project board
 def get_geo_ghp_issues(*, query, endpoint, admin_secret):
     request_variables = {}
     headers = {"Authorization": f"Bearer {admin_secret}"}
@@ -83,8 +84,6 @@ def main():
             admin_secret=ZENHUB_GRAPHQL_TOKEN,
         )
         geo_issues = geo_issues + pipeline_issues
-
-    # loop through the issues and assign to ghp
 
     with open("geo_issues.json", "w", encoding="utf-8") as f:
         json.dump(geo_issues, f, ensure_ascii=False, indent=4)

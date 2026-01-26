@@ -1,4 +1,4 @@
-# paginated request to get all issues from our workspace, with their labels, estimate and pipeline position
+# paginated request to get all issues from our zenhub workspace, with their labels, estimate and pipeline position
 zh_estimates_query = """
   query workspaceIssues($workspaceId: ID!, $after: String) {
       workspace(id: $workspaceId) { 
@@ -112,7 +112,8 @@ query ProjectsFields {
 }
 """
 
-# zenhub
+# zenhub - gets all issues labeled with "service: geo" by pipeline
+# i dont know why you can only filter by label in the searchIssuesByPipeline query
 geo_pipeline_query = """
   query workspaceIssues($pipelineId: ID!) {
     searchIssuesByPipeline(
