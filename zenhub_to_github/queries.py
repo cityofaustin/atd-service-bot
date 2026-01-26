@@ -123,21 +123,73 @@ geo_pipeline_query = """
     ) { 
       totalCount
       nodes {
-      id
-      title
-      estimate {
         id
-        value
+        title
+        number
+        estimate {
+          id
+          value
+        }
+        pipelineIssues {
+          nodes {
+            pipeline {
+              name
+              id
+            }
+          }
+			  }
       }
-      pipelineIssues {
-				nodes {
-					pipeline {
-						name
-						id
-					}
-				}
-			}
     }
   }
+"""
+
+all_geo_issues_ghp = """
+  query GeoIssues($cursor: String) {
+    organization(login: "cityofaustin") {
+      projectV2(number: 6) {
+        items(after: $cursor) {
+          totalCount
+          pageInfo {
+            hasNextPage
+            endCursor
+          }
+          nodes {
+            id
+            content {
+              ... on Issue {
+                url
+                title
+                number
+                id
+                updatedAt
+              }
+            }
+            estimate: fieldValueByName(name: "Estimate") {
+              ... on ProjectV2ItemFieldNumberValue {
+                number
+              }
+            }
+            status: fieldValueByName(name: "Status") {
+              ... on ProjectV2ItemFieldSingleSelectValue {
+                name
+                description
+              }
+            }
+          }
+        }
+      }
+    }
   }
 """
+
+# update_field_value_mutation = """
+# mutation { updateProjectV2ItemFieldValue(input: {
+#       projectId: "PVT_kwDOAEpV4M4BBib3", # geo board
+#       itemId: "I_kwDOCGHL5s7IhSUr"
+#       fieldId: "PVTF_lADOAEpV4M4BBib3zg0A61c" # field id for estimate on geo board
+#       value: {
+#         number: 4
+#       }
+#     }) { clientMutationId } }"
+#   }'
+

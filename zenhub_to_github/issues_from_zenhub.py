@@ -8,7 +8,7 @@ import sys
 import json
 import requests
 
-from zenhub_to_github.queries import zh_estimates_query
+from queries import zh_estimates_query
 
 WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
 ZENHUB_ENDPOINT = "https://api.zenhub.com/public/graphql"
