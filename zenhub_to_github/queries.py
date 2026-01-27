@@ -1,153 +1,80 @@
-# paginated request to get all issues from our zenhub workspace, with their labels, estimate and pipeline position
-zh_estimates_query = """
-  query workspaceIssues($workspaceId: ID!, $after: String) {
-      workspace(id: $workspaceId) { 
-        issues(after: $after) {
-              totalCount
-              nodes {
-                  id
-                  number
-                  title
-                  labels {
-                    nodes {
-                      name
-                      id
-                    }
-                  }
-                  estimate {
-                      value
-                  }
-                  pipelineIssue(workspaceId:$workspaceId){
-                      pipeline {
-                          id
-                          name
-                      }
-                  }
-              }
-              pageInfo {
-                  hasNextPage
-                  endCursor
-              }
-          }
-      }
-  }
-"""
-
-# gets the fields from only the geo project board
-gh_geo_fields_query = """
-  query GeoIssues {
-    organization(login: "cityofaustin") {
-      projectV2(number: 6) {
+zenhub_labeled_pipeline_query = """
+query workspaceIssues($pipelineId: ID!, $label: String!, $endCursor: String) {
+  searchIssuesByPipeline(
+    pipelineId: $pipelineId,
+    filters: {
+      labels: { in: [$label]}
+    },
+    first: 100,
+    after: $endCursor
+  ) { 
+    totalCount
+    nodes {
+      id
+      title
+      number
+      estimate {
         id
-        title
-        fields(first:20) {
-          totalCount
-          nodes {
-            ... on ProjectV2Field {
-              id
-              name
-              dataType
-            }
-            ... on ProjectV2IterationField {
-              id
-              name
-              dataType
-            }
-            ... on ProjectV2SingleSelectField {
-              id
-              name
-              dataType
-              options {
-                id
-                name
-                color
-              }
-            }					
+        value
+      }
+      pipelineIssues {
+        nodes {
+          pipeline {
+            name
+            id
           }
         }
       }
     }
-  }
-
-"""
-
-# gets all field ids from all github projects under our organization
-gh_projects_fields_query = """
-query ProjectsFields {
-	organization(login: "cityofaustin") {
-		projectsV2(first:20) {
-			totalCount
-			nodes {
-			id
-			closed
-			title
-			fields(first:20) {
-				totalCount
-				nodes {
-          ... on ProjectV2Field {
-            id
-            name
-            dataType
-          }
-          ... on ProjectV2IterationField {
-            id
-            name
-            dataType
-          }
-          ... on ProjectV2SingleSelectField {
-            id
-            name
-            dataType
-            options {
-              id
-              name
-              color
-            }
-          }					
-				}
-			}
-		}
-	}
-}
-}
-"""
-
-# zenhub - gets all issues labeled with "service: geo" by pipeline
-# i dont know why you can only filter by label in the searchIssuesByPipeline query
-geo_pipeline_query = """
-  query workspaceIssues($pipelineId: ID!) {
-    searchIssuesByPipeline(
-      pipelineId: $pipelineId,
-      filters: {
-        labels: { in: ["Service: Geo"]}
-      }
-    ) { 
-      totalCount
-      nodes {
-        id
-        title
-        number
-        estimate {
-          id
-          value
-        }
-        pipelineIssues {
-          nodes {
-            pipeline {
-              name
-              id
-            }
-          }
-			  }
-      }
+    pageInfo {
+      hasNextPage
+      endCursor
     }
   }
+}
 """
 
-all_geo_issues_ghp = """
-  query GeoIssues($cursor: String) {
+closed_zenhub_issues = """
+query workspaceClosedIssues($workspaceId: ID!, $label: String!, $endCursor: String) {
+  searchClosedIssues(
+    workspaceId: $workspaceId,
+    filters: {
+      labels: { in: [$label]}
+    },
+    first: 100,
+    after: $endCursor
+  ) {
+    totalCount
+    nodes {
+      id
+      title
+      number
+      estimate {
+        id
+        value
+      }
+      pipelineIssues {
+        nodes {
+          pipeline {
+            name
+            id
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+"""
+
+
+all_issues_github_project_board = """
+  query GeoIssues($cursor: String, $boardId: Int!) {
     organization(login: "cityofaustin") {
-      projectV2(number: 6) {
+      projectV2(number: $boardId) {
         items(after: $cursor) {
           totalCount
           pageInfo {
@@ -193,4 +120,3 @@ all_geo_issues_ghp = """
 #       }
 #     }) { clientMutationId } }"
 #   }'
-
