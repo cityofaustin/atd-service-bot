@@ -13,6 +13,11 @@ query workspaceIssues($pipelineId: ID!, $label: String!, $endCursor: String) {
       id
       title
       number
+      repository {
+        id
+        name
+        ghId
+      }
       estimate {
         id
         value
@@ -49,6 +54,11 @@ query workspaceClosedIssues($workspaceId: ID!, $label: String!, $endCursor: Stri
       id
       title
       number
+      repository {
+        id
+        name
+        ghId
+      }
       estimate {
         id
         value
@@ -110,13 +120,88 @@ all_issues_github_project_board = """
   }
 """
 
-# update_field_value_mutation = """
-# mutation { updateProjectV2ItemFieldValue(input: {
-#       projectId: "PVT_kwDOAEpV4M4BBib3", # geo board
-#       itemId: "I_kwDOCGHL5s7IhSUr"
-#       fieldId: "PVTF_lADOAEpV4M4BBib3zg0A61c" # field id for estimate on geo board
-#       value: {
-#         number: 4
-#       }
-#     }) { clientMutationId } }"
-#   }'
+# gets all field ids from all github projects under our organization
+gh_projects_fields_query = """
+query ProjectsFields {
+	organization(login: "cityofaustin") {
+		projectsV2(first:20) {
+			totalCount
+			nodes {
+			id
+			closed
+			title
+			fields(first:20) {
+				totalCount
+				nodes {
+          ... on ProjectV2Field {
+            id
+            name
+            dataType
+          }
+          ... on ProjectV2IterationField {
+            id
+            name
+            dataType
+          }
+          ... on ProjectV2SingleSelectField {
+            id
+            name
+            dataType
+            options {
+              id
+              name
+              color
+            }
+          }					
+				}
+			}
+		}
+	}
+}
+}
+"""
+
+get_github_node_id = """
+query GetIssueNodeId($owner: String!, $repo: String!, $issueNumber: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $issueNumber) {
+      id
+      number
+      title
+      state
+    }
+  }
+}
+"""
+
+
+add_issue_to_github_project_mutation = """
+mutation AddProjectItem($projectId: ID!, $contentId: ID!) {
+  addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
+    item {
+      id
+    }
+  }
+}
+"""
+
+
+github_project_field_value_mutation = """
+mutation UpdateProjectItemField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: Float!) {
+  updateProjectV2ItemFieldValue(input: {
+    projectId: $projectId
+    itemId: $itemId
+    fieldId: $fieldId
+    value: {
+      number: $value
+    }
+  }) {
+    projectV2Item {
+      id
+    }
+  }
+}
+"""
+
+
+

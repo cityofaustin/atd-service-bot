@@ -10,11 +10,15 @@ import os
 import sys
 import json
 import requests
-from field_ids import zenhub_pipeline_ids
+from field_ids import zenhub_pipeline_ids, github_project_board_ids
 from queries import (
     zenhub_labeled_pipeline_query,
     all_issues_github_project_board,
     closed_zenhub_issues,
+    gh_projects_fields_query,
+    add_issue_to_github_project_mutation,
+    github_project_field_value_mutation,
+    get_github_node_id
 )
 
 WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
@@ -23,16 +27,27 @@ ZENHUB_GRAPHQL_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 
+TEAM = "Geo"
 # This will search zenhub for only the issues with this label present
-SEARCH_LABEL = "Service: Geo"
+SEARCH_LABEL = f"Service: {TEAM}"
 # This will only get github projects for a particular board ID
-# Taken from the URL such as 6 here for Geo
-# https://github.com/orgs/cityofaustin/projects/6/views/1
-BOARD_ID = 6
+BOARD_ID = github_project_board_ids[TEAM]["board_id"]
+BOARD_NODE_ID = github_project_board_ids[TEAM]["board_node_id"]
+ESTIMATE_FIELD_ID = github_project_board_ids[TEAM]["estimate_field_id"]
+
+
+# query for finding github project board and field IDs
+# request_variables = {}
+# headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+# payload = {"query": gh_projects_fields_query, "variables": request_variables}
+# res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
+# res.raise_for_status()
+# data = res.json()
+# data
 
 
 def zenhub_paginated_graph_ql_query(
-    query, endpoint, headers, request_variables, operation_name
+        query, endpoint, headers, request_variables, operation_name
 ):
     issues = []
     end_cursor = ""
@@ -116,12 +131,54 @@ def get_github_project_issues(*, query, endpoint, admin_secret):
                 "endCursor"
             ]
             issues = (
-                issues + data["data"]["organization"]["projectV2"]["items"]["nodes"]
+                    issues + data["data"]["organization"]["projectV2"]["items"]["nodes"]
             )
         except KeyError:
             raise ValueError(data)
 
     return issues
+
+
+def get_issue_node_id(issue_number):
+    request_variables = {
+        "owner": "cityofaustin",
+        "repo": "atd-data-tech",
+        "issueNumber": issue_number,
+    }
+    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+    payload = {"query": get_github_node_id, "variables": request_variables}
+    res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
+    res.raise_for_status()
+    data = res.json()
+    return data["data"]["repository"]["issue"]["id"]
+
+
+def add_issue_to_github_project(contentId):
+    request_variables = {
+        "projectId": BOARD_NODE_ID,
+        "contentId": contentId,
+    }
+    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+    payload = {"query": add_issue_to_github_project_mutation, "variables": request_variables}
+    res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
+    res.raise_for_status()
+    data = res.json()
+    return data["data"]["addProjectV2ItemById"]["item"]["id"]
+
+
+def add_estimate_to_github_project(itemId, estimate):
+    request_variables = {
+        "projectId": BOARD_NODE_ID,
+        "itemId": itemId,
+        "fieldId": ESTIMATE_FIELD_ID,
+        "value": estimate,
+    }
+    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+    payload = {"query": github_project_field_value_mutation, "variables": request_variables}
+    res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
+    res.raise_for_status()
+    data = res.json()
+    return data
 
 
 def main():
@@ -149,18 +206,25 @@ def main():
 
     # Cleaning up zenhub issues
     cleaned_zenhub_issues = []
+    other_repo_issues = []
     for issue in zenhub_issues:
-        entry = {
-            "zenhub_id": issue["id"],
-            "title": issue["title"],
-            "issue_number": issue["number"],
-            "pipeline": issue["pipelineIssues"]["nodes"][0]["pipeline"]["name"],
-        }
-        if issue["estimate"]:
-            entry["estimate"] = issue["estimate"]["value"]
+        # Some issues are zenhub-only issues and do not already belong to the atd-data-tech repo.
+        if issue["repository"]["name"] == "atd-data-tech":
+            entry = {
+                "zenhub_id": issue["id"],
+                "title": issue["title"],
+                "issue_number": issue["number"],
+                "pipeline": issue["pipelineIssues"]["nodes"][0]["pipeline"]["name"],
+            }
+            if issue["estimate"]:
+                entry["estimate"] = issue["estimate"]["value"]
+            else:
+                entry["estimate"] = None
+            cleaned_zenhub_issues.append(entry)
         else:
-            entry["estimate"] = None
-        cleaned_zenhub_issues.append(entry)
+            other_repo_issues.append(issue)
+            logging.info(
+                f"Zenhub Issue {issue['number']} not found in the atd-data-tech repository, is present in: {issue['repository']['name']}")
     zenhub_issues = cleaned_zenhub_issues
 
     with open("geo_issues.json", "w", encoding="utf-8") as f:
@@ -197,7 +261,9 @@ def main():
     for issue in github_project_issues:
         if issue["issue_number"] not in zenhub_issue_numbers:
             # These are likely issues inside the board but without the appropriate 'Service: ' label.
-            logging.info(f"{issue['issue_number']} not found in zenhub with pipeline: {issue['pipeline']}")
+            logging.info(
+                f"{issue['issue_number']} not found in zenhub with pipeline: {issue['pipeline']}"
+            )
         else:
             for zenhub_issue in zenhub_issues:
                 if zenhub_issue["issue_number"] == issue["issue_number"]:
@@ -207,10 +273,25 @@ def main():
                     # issue["zenhub_data"] = zenhub_issue
                     break
 
+    closed_issues_to_migrate = []
     for issue in zenhub_issues:
         if issue["issue_number"] not in github_issue_numbers:
-            # These are issues that have not been migrated to the appropriate project board for whatever reason.
-            logging.info(f"{issue['issue_number']} not found in zenhub with pipeline: {issue['pipeline']}")
+            closed_issues_to_migrate.append(issue)
+            # These are issues that have not been migrated to the appropriate project board.
+            if issue['pipeline'] != "Closed":
+                logging.info(
+                    f"{issue['issue_number']} not found in github projects with pipeline: {issue['pipeline']}"
+                )
+
+    for issue in closed_issues_to_migrate:
+        issue_node_id = get_issue_node_id(issue["issue_number"])
+        item_id = add_issue_to_github_project(issue_node_id)
+        logging.info(f"Successfully added issue #{issue['issue_number']} to github projects")
+        response = add_estimate_to_github_project(item_id, issue["estimate"])
+        logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate in github projects")
+
+
+
 
     # optional for exporting to csv
     # import pandas as pd
