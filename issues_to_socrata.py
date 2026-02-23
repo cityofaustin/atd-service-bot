@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetch Github issues and Zenhub metadata and publish to open data portal
+Fetch Github issues and publish to open data portal
 """
 import datetime
 import logging
@@ -9,13 +9,11 @@ import sys
 import re
 
 from github import Github
-import requests
 import sodapy
 
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
 WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
 SOCRATA_RESOURCE_ID = os.environ["SOCRATA_RESOURCE_ID"]
-ZENHUB_ACCESS_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 SOCRATA_ENDPOINT = os.environ["SOCRATA_ENDPOINT"]
 SOCRATA_API_KEY_ID = os.environ["SOCRATA_API_KEY_ID"]
@@ -35,7 +33,7 @@ def extract_workgroups_from_labels(labels):
 
 
 def has_child_issues(issue_raw_data):
-    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0"""
+    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0 """
     subissue_summary = issue_raw_data.get("sub_issues_summary")
     if subissue_summary and subissue_summary["total"] > 0:
         return True
@@ -92,8 +90,9 @@ def issue_to_dict(issue):
     issue_dict["estimate"] = None
 
     # set pipeline for closed issues, otherwise temporarily set as none
-    issue_dict["pipeline"] = "Closed" if issue_dict["state"] == "closed" else None
-
+    issue_dict["pipeline"] = (
+            "Closed" if issue_dict["state"] == "closed" else None
+        )
     return issue_dict
 
 
