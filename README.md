@@ -1,10 +1,14 @@
 # atd-service-bot
 
-A bot that creates github issues from our Knack-based intake form.
+This repository contains scripts that manage DTS's github issues from our Knack-based service request intake form.
+`intake.py` houses the bot that creates [issues](https://github.com/cityofaustin/atd-data-tech/issues/) from the Knack DTS Portal.
+`issues_to_socrata.py` publishes information from the issues to the [Open Data Portal](https://data.austintexas.gov)
+`gh_index_issues_to_dts_portal.py` creates or updates "Index" issues in the DTS Portal from Github.
+
 
 ## Get it going
 
-Place the following environment variables in `.env`, which you can grab from 1Password:
+Place the following environment variables in `.env`, which you can grab from 1Password. There is a blank template in `env_template`.
 
 - KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME
 - KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD
