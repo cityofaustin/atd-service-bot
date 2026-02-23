@@ -174,6 +174,25 @@ query GetIssueNodeId($owner: String!, $repo: String!, $issueNumber: Int!) {
 }
 """
 
+get_project_item_query = """
+query GetProjectItemId($owner: String!, $repo: String!, $issueNumber: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $issueNumber) {
+      id
+      projectItems(first: 10) {
+        nodes {
+          id
+          project {
+            id
+            title
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
 
 add_issue_to_github_project_mutation = """
 mutation AddProjectItem($projectId: ID!, $contentId: ID!) {
@@ -194,6 +213,59 @@ mutation UpdateProjectItemField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $v
     fieldId: $fieldId
     value: {
       number: $value
+    }
+  }) {
+    projectV2Item {
+      id
+    }
+  }
+}
+"""
+
+github_project_update_pipeline = """
+mutation UpdateProjectItemStatus($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+  updateProjectV2ItemFieldValue(input: {
+    projectId: $projectId
+    itemId: $itemId
+    fieldId: $fieldId
+    value: {
+      singleSelectOptionId: $optionId
+    }
+  }) {
+    projectV2Item {
+      id
+    }
+  }
+}
+"""
+
+github_project_update_pipeline_estimate = """
+mutation UpdateProjectItemFields(
+  $projectId: ID!
+  $itemId: ID!
+  $estimateFieldId: ID!
+  $estimateValue: Float!
+  $statusFieldId: ID!
+  $statusOptionId: String!
+) {
+  updateEstimate: updateProjectV2ItemFieldValue(input: {
+    projectId: $projectId
+    itemId: $itemId
+    fieldId: $estimateFieldId
+    value: {
+      number: $estimateValue
+    }
+  }) {
+    projectV2Item {
+      id
+    }
+  }
+  updateStatus: updateProjectV2ItemFieldValue(input: {
+    projectId: $projectId
+    itemId: $itemId
+    fieldId: $statusFieldId
+    value: {
+      singleSelectOptionId: $statusOptionId
     }
   }) {
     projectV2Item {

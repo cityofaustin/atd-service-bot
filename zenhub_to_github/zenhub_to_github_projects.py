@@ -6,6 +6,7 @@ same for closed issues
 """
 
 import logging
+import time
 import os
 import sys
 import json
@@ -18,7 +19,10 @@ from queries import (
     gh_projects_fields_query,
     add_issue_to_github_project_mutation,
     github_project_field_value_mutation,
-    get_github_node_id
+    get_github_node_id,
+    get_project_item_query,
+    github_project_update_pipeline_estimate,
+    github_project_update_pipeline
 )
 
 WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
@@ -27,13 +31,15 @@ ZENHUB_GRAPHQL_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 
-TEAM = "Geo"
+TEAM = "Dev"
 # This will search zenhub for only the issues with this label present
 SEARCH_LABEL = f"Service: {TEAM}"
 # This will only get github projects for a particular board ID
 BOARD_ID = github_project_board_ids[TEAM]["board_id"]
 BOARD_NODE_ID = github_project_board_ids[TEAM]["board_node_id"]
 ESTIMATE_FIELD_ID = github_project_board_ids[TEAM]["estimate_field_id"]
+PIPELINE_FIELD_ID = github_project_board_ids[TEAM]["pipeline_field_id"]["field_id"]
+PIPELINE_OPTIONS = github_project_board_ids[TEAM]["pipeline_field_id"]["options"]
 
 
 # query for finding github project board and field IDs
@@ -163,7 +169,16 @@ def add_issue_to_github_project(contentId):
     res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
     res.raise_for_status()
     data = res.json()
-    return data["data"]["addProjectV2ItemById"]["item"]["id"]
+    if "errors" in data:
+        # For whatever reason I get these errors every now and again. Sleep 15 seconds and try again.
+        logging.error(data["errors"])
+        if data["errors"][0]["message"] == ('Your attempt to move this item created a temporary conflict. Please try '
+                                            'again.'):
+            time.sleep(15)
+            item_id = add_issue_to_github_project(contentId)
+            return item_id
+    else:
+        return data["data"]["addProjectV2ItemById"]["item"]["id"]
 
 
 def add_estimate_to_github_project(itemId, estimate):
@@ -178,7 +193,59 @@ def add_estimate_to_github_project(itemId, estimate):
     res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
     res.raise_for_status()
     data = res.json()
-    return data
+    return data["data"]["updateProjectV2ItemFieldValue"]["projectV2Item"]["id"]
+
+
+def update_github_project_estimate_and_pipeline(itemId, estimate, pipeline):
+    request_variables = {
+        "projectId": BOARD_NODE_ID,
+        "itemId": itemId,
+        "estimateFieldId": ESTIMATE_FIELD_ID,
+        "estimateValue": estimate,
+        "statusFieldId": PIPELINE_FIELD_ID,
+        "statusOptionId": PIPELINE_OPTIONS[pipeline],
+    }
+    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+    payload = {"query": github_project_update_pipeline_estimate, "variables": request_variables}
+    res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
+    res.raise_for_status()
+    data = res.json()
+    return data["data"]["updateStatus"]["projectV2Item"]["id"]
+
+
+def update_github_project_pipeline(itemId, pipeline):
+    request_variables = {
+      "projectId": BOARD_NODE_ID,
+      "itemId": itemId,
+      "fieldId": PIPELINE_FIELD_ID,
+      "optionId": PIPELINE_OPTIONS[pipeline],
+    }
+    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+    payload = {"query": github_project_update_pipeline, "variables": request_variables}
+    res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
+    res.raise_for_status()
+    data = res.json()
+    return data["data"]["updateProjectV2ItemFieldValue"]["projectV2Item"]["id"]
+
+
+def get_project_item_id(issue_number):
+    request_variables = {
+        "owner": "cityofaustin",
+        "repo": "atd-data-tech",
+        "issueNumber": issue_number,
+    }
+    headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+    payload = {"query": get_project_item_query, "variables": request_variables}
+    res = requests.post(GITHUB_ENDPOINT, json=payload, headers=headers)
+    res.raise_for_status()
+    data = res.json()
+    boards = data["data"]["repository"]["issue"]["projectItems"]["nodes"]
+    if len(boards) == 1:
+        return boards[0]["id"]
+    else:
+        for board in boards:
+            if board["project"]["id"] == BOARD_NODE_ID:
+                return board["id"]
 
 
 def main():
@@ -258,6 +325,7 @@ def main():
     zenhub_issue_numbers = [issue["issue_number"] for issue in zenhub_issues]
     github_issue_numbers = [issue["issue_number"] for issue in github_project_issues]
 
+    github_estimates_to_update = []
     for issue in github_project_issues:
         if issue["issue_number"] not in zenhub_issue_numbers:
             # These are likely issues inside the board but without the appropriate 'Service: ' label.
@@ -270,28 +338,42 @@ def main():
                     issue["zenhub_id"] = zenhub_issue["zenhub_id"]
                     issue["zenhub_estimate"] = zenhub_issue["estimate"]
                     issue["zenhub_pipeline"] = zenhub_issue["pipeline"]
-                    # issue["zenhub_data"] = zenhub_issue
+                    if not issue["estimate"] and zenhub_issue["estimate"]:
+                        github_estimates_to_update.append(issue)
                     break
 
-    closed_issues_to_migrate = []
+    issues_to_migrate = []
     for issue in zenhub_issues:
         if issue["issue_number"] not in github_issue_numbers:
-            closed_issues_to_migrate.append(issue)
+            if issue['pipeline'] == "Closed":
+                issues_to_migrate.append(issue)
             # These are issues that have not been migrated to the appropriate project board.
-            if issue['pipeline'] != "Closed":
-                logging.info(
-                    f"{issue['issue_number']} not found in github projects with pipeline: {issue['pipeline']}"
-                )
+            # if issue['pipeline'] != "Closed":
+            #     logging.info(
+            #         f"{issue['issue_number']} not found in github projects with pipeline: {issue['pipeline']}"
+            #     )
 
-    for issue in closed_issues_to_migrate:
+    for issue in issues_to_migrate:
         issue_node_id = get_issue_node_id(issue["issue_number"])
         item_id = add_issue_to_github_project(issue_node_id)
-        logging.info(f"Successfully added issue #{issue['issue_number']} to github projects")
-        response = add_estimate_to_github_project(item_id, issue["estimate"])
-        logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate in github projects")
+        logging.info(f"Successfully added issue #{issue['issue_number']} to github projects.")
+        if issue["estimate"]:
+            item_id = add_estimate_to_github_project(item_id, issue["estimate"])
+            logging.info(
+                f"Successfully updated issue #{issue['issue_number']}'s estimate github projects. \n")
+            # item_id = update_github_project_estimate_and_pipeline(item_id, issue["estimate"], issue["pipeline"])
+            # logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate and pipeline github projects. \n")
+        else:
+            # item_id = update_github_project_pipeline(item_id, issue["pipeline"])
+            # logging.info(f"Issue #{issue['issue_number']}'s has no estimate, just updated pipeline. \n ")
+            logging.info(f"Issue #{issue['issue_number']}'s has no estimate. \n ")
 
-
-
+    # for issue in github_estimates_to_update:
+    #     est = issue["zenhub_estimate"]
+    #     if est:
+    #         item_id = get_project_item_id(issue["issue_number"])
+    #         item_id = add_estimate_to_github_project(item_id, est)
+    #         logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate in github projects. \n")
 
     # optional for exporting to csv
     # import pandas as pd
