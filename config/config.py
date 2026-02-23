@@ -178,7 +178,7 @@ FIELDS = [
         "map": {
             "Bug Report — Something is not working": "Type: Bug Report",
             "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
-            "Geospatial Services (GIS, Maps, etc.)": "Service: Geo",
+            "Geospatial Services (GIS, Maps, etc.)": "Team: Geo",
             "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
             "IT Support — Help with licenses, accounts, hardware, etc.": "Type: IT Support",
             "Something Else": "Type: Other",
@@ -189,13 +189,13 @@ FIELDS = [
         "github": "labels",
         "method": "map_append_all",
         "map": {
-            "Map": ["Service: Geo", "Type: Map Request"],
-            "GIS Data": ["Service: Geo", "Type: Data"],
-            "ArcGIS Training": ["Service: Geo", "Type: Training"],
-            "ArcGIS Online Access": ["Service: Geo", "Type: IT Support"],
-            "ArcGIS Online Support": ["Service: Geo", "Type: Data"],
-            "ArcGIS Pro Support": ["Service: Geo", "Type: Data"],
-            "ArcGIS Pro Installation": ["Service: Geo", "Type: IT Support"],
+            "Map": ["Team: Geo", "Type: Map Request"],
+            "GIS Data": ["Team: Geo", "Type: Data"],
+            "ArcGIS Training": ["Team: Geo", "Type: Training"],
+            "ArcGIS Online Access": ["Team: Geo", "Type: IT Support"],
+            "ArcGIS Online Support": ["Team: Geo", "Type: Data"],
+            "ArcGIS Pro Support": ["Team: Geo", "Type: Data"],
+            "ArcGIS Pro Installation": ["Team: Geo", "Type: IT Support"],
         },
     },
     {
@@ -205,7 +205,7 @@ FIELDS = [
         "map": {
             "AMANDA": "Product: AMANDA",
             "AMD Data Tracker": "Product: AMD Data Tracker",
-            "ArcGIS": "Service: Geo",
+            "ArcGIS": "Team: Geo",
             "COORDINATE": "Product: COORDINATE",
             "Data & Technology Services Portal": "Product: Data & Technology Services Portal",
             "Finance & Purchasing Portal": "Product: Finance & Purchasing Portal",
