@@ -34,6 +34,14 @@ def extract_workgroups_from_labels(labels):
     return ", ".join(workgroup_labels_no_prefix) or None
 
 
+def has_child_issues(issue_raw_data):
+    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0"""
+    subissue_summary = issue_raw_data.get("sub_issues_summary")
+    if subissue_summary and subissue_summary["total"] > 0:
+        return True
+    return False
+
+
 def get_github_issues(repo_name, github_access_token, state="all"):
     g = Github(github_access_token)
     repo = g.get_repo(repo_name)
@@ -62,6 +70,8 @@ def issue_to_dict(issue):
         None if not getattr(issue, "milestone") else issue.milestone.title
     )
 
+    issue_dict["has_child_issues"] = has_child_issues(issue.raw_data)
+
     for attr in [
         "title",
         "body",
@@ -78,6 +88,12 @@ def issue_to_dict(issue):
     # Preprocess issue description using the new function
     issue_dict["body"] = remove_html_comments(issue_dict["body"])
 
+    # temporary placeholder for estimate
+    issue_dict["estimate"] = None
+
+    # set pipeline for closed issues, otherwise temporarily set as none
+    issue_dict["pipeline"] = "Closed" if issue_dict["state"] == "closed" else None
+
     return issue_dict
 
 
@@ -86,30 +102,6 @@ def convert_timestamps(issues):
         for key, val in issue.items():
             if isinstance(val, datetime.datetime):
                 issue[key] = val.isoformat()
-
-
-def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
-    url = f"https://api.zenhub.com/p2/workspaces/{workspace_id}/repositories/{repo_id}/board"
-    params = {"access_token": token}
-    res = requests.get(url, params=params, timeout=timeout)
-    res.raise_for_status()
-    return res.json()
-
-
-def create_zenhub_metadata_index(metadata):
-    """flatten the zenhub metadata so that we can lookup issue properties by number"""
-    index = {}
-    for p in metadata["pipelines"]:
-        pipeline_name = p["name"]
-        for issue in p["issues"]:
-            issue_number = issue["issue_number"]
-            index[issue_number] = {
-                "is_epic": issue["is_epic"],
-                "position": issue["position"],
-                "estimate": issue.get("estimate", {}).get("value"),
-                "pipeline": pipeline_name,
-            }
-    return index
 
 
 def chunks(lst, n):
@@ -125,21 +117,6 @@ def main():
 
     logging.info("Converting timestamps...")
     convert_timestamps(issues)
-
-    logging.info("Fetching Zenhub data...")
-    zenhub_metadata = get_zenhub_metadata(WORKSPACE_ID, ZENHUB_ACCESS_TOKEN, REPO["id"])
-    zenhub_metadata_index = create_zenhub_metadata_index(zenhub_metadata)
-
-    logging.info("Processing Zenhub data...")
-    for issue in issues:
-        zenhub_meta = zenhub_metadata_index.get(issue["number"])
-        if zenhub_meta:
-            issue.update(zenhub_meta)
-
-        # set pipeline for closed issues, which have no pipeline metadata
-        issue["pipeline"] = (
-            "Closed" if issue["state"] == "closed" else issue.get("pipeline")
-        )
 
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,

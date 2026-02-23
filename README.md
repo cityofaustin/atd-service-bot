@@ -33,7 +33,7 @@ docker compose build
   airflow.
 
 ```bash
-docker compose run service-bot
+docker compose run --rm service-bot
 ```
 
 - While inside the shell provided by the container, you can run the scripts, and you
@@ -41,7 +41,7 @@ docker compose run service-bot
 
 ## How it works
 
-The bot runs on Airflow and fetches new service requests from our Knack app. It generates a github issue and applies labels and assignees based on the definitions in `config/config.py`. With the github issue successfully created, the bot submits an "edit record" form in Knack, which sets the record's `github_transmission_status` to `sent`. The form submit also triggers email notifications to the requester and to our staff.
+The bot runs on [Airflow](https://github.com/cityofaustin/atd-airflow) and fetches new service requests from our Knack app. It generates a github issue and applies labels and assignees based on the definitions in `config/config.py`. With the github issue successfully created, the bot submits an "edit record" form in Knack, which sets the record's `github_transmission_status` to `sent`. The form submit also triggers email notifications to the requester and to our staff.
 
 ## How not to break the bot
 
