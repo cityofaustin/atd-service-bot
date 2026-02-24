@@ -9,7 +9,11 @@ import sys
 import re
 
 from github import Github
+import requests
 import sodapy
+import json
+
+from queries import all_project_issues_ghp
 
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
 WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
@@ -19,6 +23,7 @@ SOCRATA_ENDPOINT = os.environ["SOCRATA_ENDPOINT"]
 SOCRATA_API_KEY_ID = os.environ["SOCRATA_API_KEY_ID"]
 SOCRATA_API_KEY_SECRET = os.environ["SOCRATA_API_KEY_SECRET"]
 SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
+GITHUB_ENDPOINT = "https://api.github.com/graphql"
 
 
 def extract_workgroups_from_labels(labels):
@@ -33,7 +38,7 @@ def extract_workgroups_from_labels(labels):
 
 
 def has_child_issues(issue_raw_data):
-    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0 """
+    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0"""
     subissue_summary = issue_raw_data.get("sub_issues_summary")
     if subissue_summary and subissue_summary["total"] > 0:
         return True
@@ -90,9 +95,7 @@ def issue_to_dict(issue):
     issue_dict["estimate"] = None
 
     # set pipeline for closed issues, otherwise temporarily set as none
-    issue_dict["pipeline"] = (
-            "Closed" if issue_dict["state"] == "closed" else None
-        )
+    issue_dict["pipeline"] = "Closed" if issue_dict["state"] == "closed" else None
     return issue_dict
 
 
@@ -101,6 +104,47 @@ def convert_timestamps(issues):
         for key, val in issue.items():
             if isinstance(val, datetime.datetime):
                 issue[key] = val.isoformat()
+
+
+# retrieves all issues from DTS Project Portfolio github project board
+def get_project_portfolio_issues(*, query, endpoint, admin_secret):
+    request_variables = {}
+    headers = {"Authorization": f"Bearer {admin_secret}"}
+    issues = []
+
+    end_cursor = ""
+    has_next_page = True
+    while has_next_page:
+        request_variables["cursor"] = end_cursor
+        payload = {"query": query, "variables": request_variables}
+        res = requests.post(endpoint, json=payload, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+        try:
+            logging.info(
+                data["data"]["organization"]["projectV2"]["items"]["totalCount"]
+            )
+            has_next_page = data["data"]["organization"]["projectV2"]["items"][
+                "pageInfo"
+            ]["hasNextPage"]
+            end_cursor = data["data"]["organization"]["projectV2"]["items"]["pageInfo"][
+                "endCursor"
+            ]
+            issues = (
+                issues + data["data"]["organization"]["projectV2"]["items"]["nodes"]
+            )
+        except KeyError:
+            raise ValueError(data)
+
+    return issues
+
+
+def make_issues_dictionary(project_issues):
+    """Returns dictionary where keys are issue numbers and value is their status"""
+    issues_dict = {}
+    for issue in project_issues:
+        issues_dict[issue["content"]["number"]]= issue["status"]["name"]
+    return issues_dict
 
 
 def chunks(lst, n):
@@ -117,26 +161,48 @@ def main():
     logging.info("Converting timestamps...")
     convert_timestamps(issues)
 
-    client = sodapy.Socrata(
-        SOCRATA_ENDPOINT,
-        SOCRATA_APP_TOKEN,
-        username=SOCRATA_API_KEY_ID,
-        password=SOCRATA_API_KEY_SECRET,
-        timeout=60,
+    logging.info("Fetching Project Porfolio data...")
+    project_portfolio_issues = get_project_portfolio_issues(
+        query=all_project_issues_ghp,
+        endpoint=GITHUB_ENDPOINT,
+        admin_secret=GITHUB_ACCESS_TOKEN,
     )
 
-    logging.info(f"Uploading to Socrata...")
-    first_chunk = True
-    count_processed = 0
-    for chunk in chunks(issues, 1000):
-        if first_chunk:
-            # completely replace dataset to ensure deleted issues are flushed
-            client.replace(SOCRATA_RESOURCE_ID, issues)
-            first_chunk = False
-        client.upsert(SOCRATA_RESOURCE_ID, issues)
-        count_processed += len(chunk)
-        logging.info(f"{count_processed} processed of {len(issues)}")
-    logging.info(f"Done uploading issues to Socrata")
+    portfolio_issues_dict = make_issues_dictionary(project_portfolio_issues)
+
+    logging.info("Processing statuses...")
+    for issue in issues:
+        if issue["state"] == "closed":
+            issue["pipeline"] = "Closed"
+        else:
+            # if issue is not in the portfolio issues dictionary, the pipeline is None
+            issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
+
+
+    with open("finalissues.json", "w", encoding="utf-8") as f:
+        json.dump(issues, f, ensure_ascii=False, indent=4)
+
+
+    # client = sodapy.Socrata(
+    #     SOCRATA_ENDPOINT,
+    #     SOCRATA_APP_TOKEN,
+    #     username=SOCRATA_API_KEY_ID,
+    #     password=SOCRATA_API_KEY_SECRET,
+    #     timeout=60,
+    # )
+
+    # logging.info(f"Uploading to Socrata...")
+    # first_chunk = True
+    # count_processed = 0
+    # for chunk in chunks(issues, 1000):
+    #     if first_chunk:
+    #         # completely replace dataset to ensure deleted issues are flushed
+    #         client.replace(SOCRATA_RESOURCE_ID, issues)
+    #         first_chunk = False
+    #     client.upsert(SOCRATA_RESOURCE_ID, issues)
+    #     count_processed += len(chunk)
+    #     logging.info(f"{count_processed} processed of {len(issues)}")
+    # logging.info(f"Done uploading issues to Socrata")
 
 
 if __name__ == "__main__":
