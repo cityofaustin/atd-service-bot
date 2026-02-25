@@ -11,7 +11,6 @@ import re
 from github import Github
 import requests
 import sodapy
-import json
 
 from queries import all_project_issues_ghp
 
@@ -140,7 +139,7 @@ def make_issues_dictionary(project_issues):
     """Returns dictionary where keys are issue numbers and value is their status"""
     issues_dict = {}
     for issue in project_issues:
-        issues_dict[issue["content"]["number"]]= issue["status"]["name"]
+        issues_dict[issue["content"]["number"]] = issue["status"]["name"]
     return issues_dict
 
 
@@ -174,11 +173,6 @@ def main():
         else:
             # if issue is not in the portfolio issues dictionary, the pipeline is None
             issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
-
-
-    with open("finalissues.json", "w", encoding="utf-8") as f:
-        json.dump(issues, f, ensure_ascii=False, indent=4)
-
 
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,
