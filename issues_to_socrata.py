@@ -91,7 +91,7 @@ def issue_to_dict(issue):
     # Preprocess issue description using the new function
     issue_dict["body"] = remove_html_comments(issue_dict["body"])
 
-    # temporary placeholder for estimate
+    # placeholder for estimate until we have issue fields available
     issue_dict["estimate"] = None
 
     # set pipeline for closed issues, otherwise temporarily set as none
@@ -121,9 +121,6 @@ def get_project_portfolio_issues(*, query, endpoint, admin_secret):
         res.raise_for_status()
         data = res.json()
         try:
-            logging.info(
-                data["data"]["organization"]["projectV2"]["items"]["totalCount"]
-            )
             has_next_page = data["data"]["organization"]["projectV2"]["items"][
                 "pageInfo"
             ]["hasNextPage"]
@@ -183,26 +180,26 @@ def main():
         json.dump(issues, f, ensure_ascii=False, indent=4)
 
 
-    # client = sodapy.Socrata(
-    #     SOCRATA_ENDPOINT,
-    #     SOCRATA_APP_TOKEN,
-    #     username=SOCRATA_API_KEY_ID,
-    #     password=SOCRATA_API_KEY_SECRET,
-    #     timeout=60,
-    # )
+    client = sodapy.Socrata(
+        SOCRATA_ENDPOINT,
+        SOCRATA_APP_TOKEN,
+        username=SOCRATA_API_KEY_ID,
+        password=SOCRATA_API_KEY_SECRET,
+        timeout=60,
+    )
 
-    # logging.info(f"Uploading to Socrata...")
-    # first_chunk = True
-    # count_processed = 0
-    # for chunk in chunks(issues, 1000):
-    #     if first_chunk:
-    #         # completely replace dataset to ensure deleted issues are flushed
-    #         client.replace(SOCRATA_RESOURCE_ID, issues)
-    #         first_chunk = False
-    #     client.upsert(SOCRATA_RESOURCE_ID, issues)
-    #     count_processed += len(chunk)
-    #     logging.info(f"{count_processed} processed of {len(issues)}")
-    # logging.info(f"Done uploading issues to Socrata")
+    logging.info(f"Uploading to Socrata...")
+    first_chunk = True
+    count_processed = 0
+    for chunk in chunks(issues, 1000):
+        if first_chunk:
+            # completely replace dataset to ensure deleted issues are flushed
+            client.replace(SOCRATA_RESOURCE_ID, issues)
+            first_chunk = False
+        client.upsert(SOCRATA_RESOURCE_ID, issues)
+        count_processed += len(chunk)
+        logging.info(f"{count_processed} processed of {len(issues)}")
+    logging.info(f"Done uploading issues to Socrata")
 
 
 if __name__ == "__main__":
