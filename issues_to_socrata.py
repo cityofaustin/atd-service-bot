@@ -93,8 +93,6 @@ def issue_to_dict(issue):
     # placeholder for estimate until we have issue fields available
     issue_dict["estimate"] = None
 
-    # set pipeline for closed issues, otherwise temporarily set as none
-    issue_dict["pipeline"] = "Closed" if issue_dict["state"] == "closed" else None
     return issue_dict
 
 
@@ -172,6 +170,7 @@ def main():
             issue["pipeline"] = "Closed"
         else:
             # if issue is not in the portfolio issues dictionary, the pipeline is None
+            # this is temporary until we get issue fields
             issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
 
     client = sodapy.Socrata(

@@ -15,7 +15,6 @@ Place the following environment variables in `.env`, which you can grab from 1Pa
 - KNACK_API_KEY
 - KNACK_APP_ID
 - GITHUB_ACCESS_TOKEN
-- ZENHUB_ACCESS_TOKEN
 - SOCRATA_ENDPOINT
 - SOCRATA_API_KEY_ID
 - SOCRATA_API_KEY_SECRET
