@@ -72,7 +72,7 @@ def issue_to_dict(issue):
         None if not getattr(issue, "milestone") else issue.milestone.title
     )
 
-    issue_dict["has_child_issues"] = has_child_issues(issue.raw_data)
+    issue_dict["is_epic"] = has_child_issues(issue.raw_data)
 
     for attr in [
         "title",
