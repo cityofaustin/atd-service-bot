@@ -77,7 +77,7 @@ github_project_board_ids = {
     "Tech Services": {
         "board_id": 21,
         "board_node_id": "PVT_kwDOAEpV4M4BMtnX",
-        "estimate_field_id": 'PVTF_lADOAEpV4M4BMtnXzg8veco',
+        "estimate_field_id": "PVTF_lADOAEpV4M4BMtnXzg8veco",
         "pipeline_field_id": {
             "field_id": "PVTSSF_lADOAEpV4M4BMtnXzg76uj8",
             "options": {
@@ -247,21 +247,21 @@ github_project_board_ids = {
     },
     "Dev": {
         "board_id": 25,
-        "board_node_id": 'PVT_kwDOAEpV4M4BOgBQ',
-        "estimate_field_id": 'PVTF_lADOAEpV4M4BOgBQzg9L1Ss',
+        "board_node_id": "PVT_kwDOAEpV4M4BOgBQ",
+        "estimate_field_id": "PVTF_lADOAEpV4M4BOgBQzg9L1Ss",
         "pipeline_field_id": {
-            "field_id": 'PVTSSF_lADOAEpV4M4BOgBQzg9L1SI',
+            "field_id": "PVTSSF_lADOAEpV4M4BOgBQzg9L1SI",
             "options": {
-                "New": '5363d18e',
-                "Icebox": '63604d86',
-                "Needs Scoping": 'f75ad846',
-                "Backlog": '47fc9ee4',
-                "On Deck": '4f87863e',
-                "In Progress": '9448cc97',
-                "Blocked": 'e4848f40',
-                "Review/QA": '37e3d819',
-                "Ongoing": '0555309e',
-                "Closed": '98236657',
+                "New": "5363d18e",
+                "Icebox": "63604d86",
+                "Needs Scoping": "f75ad846",
+                "Backlog": "47fc9ee4",
+                "On Deck": "4f87863e",
+                "In Progress": "9448cc97",
+                "Blocked": "e4848f40",
+                "Review/QA": "37e3d819",
+                "Ongoing": "0555309e",
+                "Closed": "98236657",
             },
         },
     },

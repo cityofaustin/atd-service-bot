@@ -274,6 +274,3 @@ mutation UpdateProjectItemFields(
   }
 }
 """
-
-
-
