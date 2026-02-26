@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetch Github issues and publish to open data portal
+Fetch Github issues and publish them to open data portal
 """
 import datetime
 import logging
