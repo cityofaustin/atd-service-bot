@@ -15,7 +15,6 @@ import sodapy
 from queries import all_project_issues_ghp
 
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
-WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
 SOCRATA_RESOURCE_ID = os.environ["SOCRATA_RESOURCE_ID"]
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 SOCRATA_ENDPOINT = os.environ["SOCRATA_ENDPOINT"]
