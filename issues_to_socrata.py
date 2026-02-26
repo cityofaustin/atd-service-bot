@@ -136,6 +136,9 @@ def make_project_issue_lookup(project_issues):
     """Returns dictionary where keys are issue numbers and value is their status"""
     project_issue_lookup = {}
     for issue in project_issues:
+        # skip any items in project that do not have issue content
+        if not issue["content"]:
+            continue
         project_issue_lookup[issue["content"]["number"]] = issue.get("status", {}).get(
             "name"
         )
