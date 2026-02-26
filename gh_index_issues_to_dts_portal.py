@@ -16,7 +16,6 @@ from github import Github
 import knackpy
 import markdown
 
-WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
 KNACK_API_KEY = os.environ["KNACK_API_KEY"]
 KNACK_APP_ID = os.environ["KNACK_APP_ID"]
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
