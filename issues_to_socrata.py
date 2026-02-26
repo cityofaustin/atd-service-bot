@@ -132,12 +132,14 @@ def get_project_portfolio_issues(*, query, endpoint, admin_secret):
     return issues
 
 
-def make_issues_dictionary(project_issues):
+def make_project_issue_lookup(project_issues):
     """Returns dictionary where keys are issue numbers and value is their status"""
-    issues_dict = {}
+    project_issue_lookup = {}
     for issue in project_issues:
-        issues_dict[issue["content"]["number"]] = issue["status"]["name"]
-    return issues_dict
+        project_issue_lookup[issue["content"]["number"]] = issue.get("status", {}).get(
+            "name"
+        )
+    return project_issue_lookup
 
 
 def chunks(lst, n):
@@ -161,7 +163,7 @@ def main():
         admin_secret=GITHUB_ACCESS_TOKEN,
     )
 
-    portfolio_issues_dict = make_issues_dictionary(project_portfolio_issues)
+    portfolio_issues_dict = make_project_issue_lookup(project_portfolio_issues)
 
     logging.info("Processing statuses...")
     for issue in issues:
