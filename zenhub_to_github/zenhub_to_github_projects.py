@@ -31,7 +31,7 @@ ZENHUB_GRAPHQL_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 
-TEAM = "Dev"
+TEAM = "Tech Services"
 # This will search zenhub for only the issues with this label present
 SEARCH_LABEL = f"Service: {TEAM}"
 # This will only get github projects for a particular board ID
@@ -304,17 +304,18 @@ def main():
     )
     github_project_issues_cleaned = []
     for issue in github_project_issues:
-        entry = {
-            "github_project_id": issue["id"],
-            "title": issue["content"]["title"],
-            "issue_number": issue["content"]["number"],
-            "pipeline": issue["status"]["name"],
-        }
-        if issue["estimate"]:
-            entry["estimate"] = issue["estimate"]["number"]
-        else:
-            entry["estimate"] = None
-        github_project_issues_cleaned.append(entry)
+        if issue["content"]:
+            entry = {
+                "github_project_id": issue["id"],
+                "title": issue["content"]["title"],
+                "issue_number": issue["content"]["number"],
+                "pipeline": issue["status"]["name"],
+            }
+            if issue["estimate"]:
+                entry["estimate"] = issue["estimate"]["number"]
+            else:
+                entry["estimate"] = None
+            github_project_issues_cleaned.append(entry)
 
     github_project_issues = github_project_issues_cleaned
 
@@ -343,16 +344,20 @@ def main():
                     break
 
     issues_to_migrate = []
+    open_issues_to_migrate = []
     for issue in zenhub_issues:
         if issue["issue_number"] not in github_issue_numbers:
             if issue['pipeline'] == "Closed":
                 issues_to_migrate.append(issue)
+            else:
+                open_issues_to_migrate.append(issue)
             # These are issues that have not been migrated to the appropriate project board.
             # if issue['pipeline'] != "Closed":
             #     logging.info(
             #         f"{issue['issue_number']} not found in github projects with pipeline: {issue['pipeline']}"
             #     )
 
+    # Closed issues migration
     for issue in issues_to_migrate:
         issue_node_id = get_issue_node_id(issue["issue_number"])
         item_id = add_issue_to_github_project(issue_node_id)
@@ -361,19 +366,28 @@ def main():
             item_id = add_estimate_to_github_project(item_id, issue["estimate"])
             logging.info(
                 f"Successfully updated issue #{issue['issue_number']}'s estimate github projects. \n")
-            # item_id = update_github_project_estimate_and_pipeline(item_id, issue["estimate"], issue["pipeline"])
-            # logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate and pipeline github projects. \n")
         else:
-            # item_id = update_github_project_pipeline(item_id, issue["pipeline"])
-            # logging.info(f"Issue #{issue['issue_number']}'s has no estimate, just updated pipeline. \n ")
             logging.info(f"Issue #{issue['issue_number']}'s has no estimate. \n ")
 
-    # for issue in github_estimates_to_update:
-    #     est = issue["zenhub_estimate"]
-    #     if est:
-    #         item_id = get_project_item_id(issue["issue_number"])
-    #         item_id = add_estimate_to_github_project(item_id, est)
-    #         logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate in github projects. \n")
+    # Open issues migration
+    for issue in open_issues_to_migrate:
+        issue_node_id = get_issue_node_id(issue["issue_number"])
+        item_id = add_issue_to_github_project(issue_node_id)
+        logging.info(f"Successfully added issue #{issue['issue_number']} to github projects.")
+        if issue["estimate"]:
+            item_id = update_github_project_estimate_and_pipeline(item_id, issue["estimate"], issue["pipeline"])
+            logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate and pipeline github projects. \n")
+        else:
+            item_id = update_github_project_pipeline(item_id, issue["pipeline"])
+            logging.info(f"Issue #{issue['issue_number']}'s has no estimate, just updated pipeline. \n ")
+
+    # Updating estimates for those missing from GHP but available in zenhub
+    for issue in github_estimates_to_update:
+        est = issue["zenhub_estimate"]
+        if est:
+            item_id = get_project_item_id(issue["issue_number"])
+            item_id = add_estimate_to_github_project(item_id, est)
+            logging.info(f"Successfully updated issue #{issue['issue_number']}'s estimate in github projects. \n")
 
     # optional for exporting to csv
     # import pandas as pd

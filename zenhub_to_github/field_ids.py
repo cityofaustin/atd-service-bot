@@ -77,7 +77,7 @@ github_project_board_ids = {
     "Tech Services": {
         "board_id": 21,
         "board_node_id": "PVT_kwDOAEpV4M4BMtnX",
-        "estimate_field_id": None,  # I couldn't find any estimate field for this board.
+        "estimate_field_id": 'PVTF_lADOAEpV4M4BMtnXzg8veco',
         "pipeline_field_id": {
             "field_id": "PVTSSF_lADOAEpV4M4BMtnXzg76uj8",
             "options": {
