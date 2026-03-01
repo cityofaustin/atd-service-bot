@@ -1,7 +1,7 @@
 all_project_issues_ghp = """
   query ProjectIssues($cursor: String) {
     organization(login: "cityofaustin") {
-      projectV2(number: 11) {
+      projectV2(number: 27) {
         items(after: $cursor) {
           totalCount
           pageInfo {
