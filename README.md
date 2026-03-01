@@ -1,17 +1,20 @@
 # atd-service-bot
 
-A bot that creates github issues from our Knack-based intake form.
+This repository contains scripts that manage DTS's github issues from our Knack-based service request intake form.
+`intake.py` houses the bot that creates [issues](https://github.com/cityofaustin/atd-data-tech/issues/) from the Knack DTS Portal.
+`issues_to_socrata.py` publishes information from the issues to the [Open Data Portal](https://data.austintexas.gov)
+`gh_index_issues_to_dts_portal.py` creates or updates "Index" issues in the DTS Portal from Github.
+
 
 ## Get it going
 
-Place the following environment variables in `.env`, which you can grab from 1Password:
+Place the following environment variables in `.env`, which you can grab from 1Password. There is a blank template in `env_template`.
 
 - KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME
 - KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD
 - KNACK_API_KEY
 - KNACK_APP_ID
 - GITHUB_ACCESS_TOKEN
-- ZENHUB_ACCESS_TOKEN
 - SOCRATA_ENDPOINT
 - SOCRATA_API_KEY_ID
 - SOCRATA_API_KEY_SECRET
@@ -29,7 +32,7 @@ docker compose build
   airflow.
 
 ```bash
-docker compose run service-bot
+docker compose run --rm service-bot
 ```
 
 - While inside the shell provided by the container, you can run the scripts, and you
@@ -37,7 +40,7 @@ docker compose run service-bot
 
 ## How it works
 
-The bot runs on Airflow and fetches new service requests from our Knack app. It generates a github issue and applies labels and assignees based on the definitions in `config/config.py`. With the github issue successfully created, the bot submits an "edit record" form in Knack, which sets the record's `github_transmission_status` to `sent`. The form submit also triggers email notifications to the requester and to our staff.
+The bot runs on [Airflow](https://github.com/cityofaustin/atd-airflow) and fetches new service requests from our Knack app. It generates a github issue and applies labels and assignees based on the definitions in `config/config.py`. With the github issue successfully created, the bot submits an "edit record" form in Knack, which sets the record's `github_transmission_status` to `sent`. The form submit also triggers email notifications to the requester and to our staff.
 
 ## How not to break the bot
 

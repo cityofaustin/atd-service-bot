@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetch Github issues and Zenhub metadata and publish to open data portal
+Fetch Github issues and publish them to open data portal
 """
 import datetime
 import logging
@@ -12,15 +12,16 @@ from github import Github
 import requests
 import sodapy
 
+from queries import all_project_issues_ghp
+
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
-WORKSPACE_ID = "5caf7dc6ecad11531cc418ef"
 SOCRATA_RESOURCE_ID = os.environ["SOCRATA_RESOURCE_ID"]
-ZENHUB_ACCESS_TOKEN = os.environ["ZENHUB_ACCESS_TOKEN"]
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 SOCRATA_ENDPOINT = os.environ["SOCRATA_ENDPOINT"]
 SOCRATA_API_KEY_ID = os.environ["SOCRATA_API_KEY_ID"]
 SOCRATA_API_KEY_SECRET = os.environ["SOCRATA_API_KEY_SECRET"]
 SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
+GITHUB_ENDPOINT = "https://api.github.com/graphql"
 
 
 def extract_workgroups_from_labels(labels):
@@ -32,6 +33,14 @@ def extract_workgroups_from_labels(labels):
         label.replace("Workgroup:", "").strip() for label in workgroup_labels
     ]
     return ", ".join(workgroup_labels_no_prefix) or None
+
+
+def has_child_issues(issue_raw_data):
+    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0"""
+    subissue_summary = issue_raw_data.get("sub_issues_summary")
+    if subissue_summary and subissue_summary["total"] > 0:
+        return True
+    return False
 
 
 def get_github_issues(repo_name, github_access_token, state="all"):
@@ -62,6 +71,8 @@ def issue_to_dict(issue):
         None if not getattr(issue, "milestone") else issue.milestone.title
     )
 
+    issue_dict["is_epic"] = has_child_issues(issue.raw_data)
+
     for attr in [
         "title",
         "body",
@@ -78,6 +89,9 @@ def issue_to_dict(issue):
     # Preprocess issue description using the new function
     issue_dict["body"] = remove_html_comments(issue_dict["body"])
 
+    # placeholder for estimate until we have issue fields available
+    issue_dict["estimate"] = None
+
     return issue_dict
 
 
@@ -88,28 +102,52 @@ def convert_timestamps(issues):
                 issue[key] = val.isoformat()
 
 
-def get_zenhub_metadata(workspace_id, token, repo_id, timeout=60):
-    url = f"https://api.zenhub.com/p2/workspaces/{workspace_id}/repositories/{repo_id}/board"
-    params = {"access_token": token}
-    res = requests.get(url, params=params, timeout=timeout)
-    res.raise_for_status()
-    return res.json()
+# retrieves all issues from DTS Project Portfolio github project board
+def get_project_portfolio_issues(*, query, endpoint, admin_secret):
+    request_variables = {}
+    headers = {"Authorization": f"Bearer {admin_secret}"}
+    issues = []
+
+    end_cursor = ""
+    has_next_page = True
+    while has_next_page:
+        request_variables["cursor"] = end_cursor
+        payload = {"query": query, "variables": request_variables}
+        res = requests.post(endpoint, json=payload, headers=headers)
+        res.raise_for_status()
+        data = res.json()
+        try:
+            has_next_page = data["data"]["organization"]["projectV2"]["items"][
+                "pageInfo"
+            ]["hasNextPage"]
+            end_cursor = data["data"]["organization"]["projectV2"]["items"]["pageInfo"][
+                "endCursor"
+            ]
+            issues = (
+                issues + data["data"]["organization"]["projectV2"]["items"]["nodes"]
+            )
+        except KeyError:
+            raise ValueError(data)
+
+    return issues
 
 
-def create_zenhub_metadata_index(metadata):
-    """flatten the zenhub metadata so that we can lookup issue properties by number"""
-    index = {}
-    for p in metadata["pipelines"]:
-        pipeline_name = p["name"]
-        for issue in p["issues"]:
-            issue_number = issue["issue_number"]
-            index[issue_number] = {
-                "is_epic": issue["is_epic"],
-                "position": issue["position"],
-                "estimate": issue.get("estimate", {}).get("value"),
-                "pipeline": pipeline_name,
-            }
-    return index
+def make_project_issue_lookup(project_issues):
+    """Returns dictionary where keys are issue numbers and value is their status"""
+    project_issue_lookup = {}
+    for issue in project_issues:
+        # skip any items in project that do not have issue content
+        if not issue["content"]:
+            continue
+        try:
+            project_issue_lookup[issue["content"]["number"]] = issue.get(
+                "status", {}
+            ).get("name")
+        except AttributeError:
+            logging.info(
+                f'Issue {issue["content"]["number"]} status is {issue.get("status")}'
+            )
+    return project_issue_lookup
 
 
 def chunks(lst, n):
@@ -126,20 +164,23 @@ def main():
     logging.info("Converting timestamps...")
     convert_timestamps(issues)
 
-    logging.info("Fetching Zenhub data...")
-    zenhub_metadata = get_zenhub_metadata(WORKSPACE_ID, ZENHUB_ACCESS_TOKEN, REPO["id"])
-    zenhub_metadata_index = create_zenhub_metadata_index(zenhub_metadata)
+    logging.info("Fetching Project Porfolio data...")
+    project_portfolio_issues = get_project_portfolio_issues(
+        query=all_project_issues_ghp,
+        endpoint=GITHUB_ENDPOINT,
+        admin_secret=GITHUB_ACCESS_TOKEN,
+    )
 
-    logging.info("Processing Zenhub data...")
+    portfolio_issues_dict = make_project_issue_lookup(project_portfolio_issues)
+
+    logging.info("Processing statuses...")
     for issue in issues:
-        zenhub_meta = zenhub_metadata_index.get(issue["number"])
-        if zenhub_meta:
-            issue.update(zenhub_meta)
-
-        # set pipeline for closed issues, which have no pipeline metadata
-        issue["pipeline"] = (
-            "Closed" if issue["state"] == "closed" else issue.get("pipeline")
-        )
+        if issue["state"] == "closed":
+            issue["pipeline"] = "Closed"
+        else:
+            # if issue is not in the portfolio issues dictionary, the pipeline is None
+            # this is temporary until we get issue fields
+            issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
 
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,
