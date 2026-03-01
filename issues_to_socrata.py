@@ -139,9 +139,14 @@ def make_project_issue_lookup(project_issues):
         # skip any items in project that do not have issue content
         if not issue["content"]:
             continue
-        project_issue_lookup[issue["content"]["number"]] = issue.get("status", {}).get(
-            "name"
-        )
+        try:
+            project_issue_lookup[issue["content"]["number"]] = issue.get(
+                "status", {}
+            ).get("name")
+        except AttributeError:
+            logging.info(
+                f'Issue {issue["content"]["number"]} status is {issue.get("status")}'
+            )
     return project_issue_lookup
 
 
