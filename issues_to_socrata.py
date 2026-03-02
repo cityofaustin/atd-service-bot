@@ -2,7 +2,7 @@
 """
 Fetch Github issues and publish them to open data portal
 """
-import datetime
+from datetime import datetime
 import logging
 import os
 import sys
@@ -53,7 +53,7 @@ def get_github_issues(github_access_token):
         "Authorization": f"Bearer {github_access_token}",
         "Accept": "application/vnd.github+json",
     }
-    params = {"state": "open", "per_page": 100}
+    params = {"state": "all", "per_page": 100}
 
     issues = []
     while url:
@@ -91,15 +91,20 @@ def format_gh_issues(issue):
     for attr in [
         "title",
         "body",
-        "closed_at",
-        "created_at",
-        "updated_at",
         "state",
         "number",
         "id",
         "url",
     ]:
         issue_dict[attr] = issue.get(attr)
+
+    # convert timestamps
+    for attr in [
+        "closed_at",
+        "created_at",
+        "updated_at",
+    ]:
+        issue_dict[attr] = convert_timestamp(issue.get(attr))
 
     # Preprocess issue description using the new function
     issue_dict["body"] = remove_html_comments(issue_dict["body"])
@@ -110,11 +115,10 @@ def format_gh_issues(issue):
     return issue_dict
 
 
-def convert_timestamps(issues):
-    for issue in issues:
-        for key, val in issue.items():
-            if isinstance(val, datetime.datetime):
-                issue[key] = val.isoformat()
+def convert_timestamp(date_string):
+    if date_string:
+        return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ").isoformat()
+    return None
 
 
 # retrieves all issues from DTS Project Portfolio github project board
@@ -174,10 +178,7 @@ def chunks(lst, n):
 def main():
     logging.info("Fetching github issues...")
     issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN)
-
     issues = [format_gh_issues(issue) for issue in issues_gh]
-    logging.info("Converting timestamps...")
-    convert_timestamps(issues)
 
     logging.info("Fetching Project Porfolio data...")
     project_portfolio_issues = get_project_portfolio_issues(
