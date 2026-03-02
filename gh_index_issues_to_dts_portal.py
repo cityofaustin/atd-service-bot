@@ -12,9 +12,10 @@ import logging
 import os
 import sys
 
-from github import Github
 import knackpy
 import markdown
+import json
+import requests
 
 KNACK_API_KEY = os.environ["KNACK_API_KEY"]
 KNACK_APP_ID = os.environ["KNACK_APP_ID"]
@@ -32,6 +33,11 @@ KNACK_ISSUE_ASSIGNEE = "field_675"
 # KNACK_COMMENT_DATE_FIELD = "field_689"  # staging field
 # KNACK_ISSUE_ASSIGNEE = "field_690"  # staging field
 
+headers = {
+        "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
+        "Accept": "application/vnd.github+json",
+    }
+
 
 def find_knack_record_by_issue(knack_records, issue_number):
     """
@@ -43,6 +49,35 @@ def find_knack_record_by_issue(knack_records, issue_number):
             return record
     return None
 
+
+def get_project_index_issues():
+    url = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
+    params = {"state": "all", "labels": ["Project Index"], "per_page": 100}
+
+    issues = []
+    while url:
+        logging.info(f"getting {url}")
+        r = requests.get(url, headers=headers, params=params)
+        issues.extend(r.json())
+        url = r.links.get("next", {}).get("url")  # handle pagination
+        params = {}  # don't re-send params on paginated URLs
+    return issues
+
+
+def get_last_comment(issue_comment_url):
+    try:
+        r = requests.get(issue_comment_url, headers=headers)
+        r.raise_for_status()
+        comments = r.json()
+    except Exception as err:
+        print(f'An error occurred: {err}')
+
+    last_comment = comments[-1]
+    last_comment_body = last_comment.get("body")
+    last_comment_body = markdown.markdown(last_comment_body)
+    last_comment_date = last_comment.get("created_at")
+
+    return last_comment_body, last_comment_date
 
 def build_payload(project_records, project_issues):
     """
@@ -57,17 +92,14 @@ def build_payload(project_records, project_issues):
         pipeline = None
         last_comment_body = None
         last_comment_date = None
-        comments = issue.get_comments()
+        if issue.get("comments") > 0:
+            last_comment_body, last_comment_date = get_last_comment(issue.get("comments_url"))
+
         # an issue often has more than one assignee, this returns the list of users assigned to the issue
         assignees = issue.assignees
         assignees_logins = [user.login for user in assignees]
         assignees_string = " ".join(assignees_logins)
-        comments_list = [comment for comment in comments]
-        if len(comments_list) > 0:
-            last_comment = comments_list[-1]
-            last_comment_body = last_comment.body
-            last_comment_body = markdown.markdown(last_comment_body)
-            last_comment_date = last_comment.created_at
+
 
         # ZH metadata does not include closed issues
         if issue.state == "closed":
@@ -127,14 +159,8 @@ def main():
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
     project_records = app.get(KNACK_OBJ)
 
-    # setup an instance of our github client
-    g = Github(GITHUB_ACCESS_TOKEN)
-    repo = g.get_repo(REPO)
-
-    # iterate over the github client's issues and build our working data
     logging.info("Downloading issues from github")
-    project_issues_paginator = repo.get_issues(state="all", labels=["Project Index"])
-    project_issues = [issue for issue in project_issues_paginator]
+    project_issues = get_project_index_issues()
 
     # build the payload out of the github and knack state of the data
     logging.info("Building payload...")
