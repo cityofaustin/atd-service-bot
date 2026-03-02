@@ -8,7 +8,6 @@ import os
 import sys
 import re
 
-from github import Github
 import requests
 import sodapy
 
@@ -27,7 +26,13 @@ GITHUB_ENDPOINT = "https://api.github.com/graphql"
 def extract_workgroups_from_labels(labels):
     """Extract a comma-separated list of workgroup names from "Workgroup: Xyz" labels"""
     workgroup_labels = list(
-        set([label.name for label in labels if label.name.startswith("Workgroup:")])
+        set(
+            [
+                label.get("name")
+                for label in labels
+                if label.get("name").startswith("Workgroup:")
+            ]
+        )
     )
     workgroup_labels_no_prefix = [
         label.replace("Workgroup:", "").strip() for label in workgroup_labels
@@ -35,19 +40,29 @@ def extract_workgroups_from_labels(labels):
     return ", ".join(workgroup_labels_no_prefix) or None
 
 
-def has_child_issues(issue_raw_data):
+def has_child_issues(subissue_summary):
     """Return True if total in sub_issues_summary from issue_raw_data is greater than 0"""
-    subissue_summary = issue_raw_data.get("sub_issues_summary")
     if subissue_summary and subissue_summary["total"] > 0:
         return True
     return False
 
 
-def get_github_issues(repo_name, github_access_token, state="all"):
-    g = Github(github_access_token)
-    repo = g.get_repo(repo_name)
-    issues_metadata = repo.get_issues(state=state)
-    return [issue for issue in issues_metadata]
+def get_github_issues(github_access_token):
+    url = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
+    headers = {
+        "Authorization": f"Bearer {github_access_token}",
+        "Accept": "application/vnd.github+json",
+    }
+    params = {"state": "open", "per_page": 100}
+
+    issues = []
+    while url:
+        logging.info(f"getting {url}")
+        r = requests.get(url, headers=headers, params=params)
+        issues.extend(r.json())
+        url = r.links.get("next", {}).get("url")  # handle pagination
+        params = {}  # don't re-send params on paginated URLs
+    return issues
 
 
 def remove_html_comments(text):
@@ -57,21 +72,21 @@ def remove_html_comments(text):
     return re.sub(r"<!--(.*?)-->", "", text, flags=re.DOTALL)
 
 
-def issue_to_dict(issue):
-    """breakdown pygithub classes into dicts"""
+def format_gh_issues(issue):
+    """Format github issue dictionary into fields expected in the ODP"""
     issue_dict = {}
 
-    issue_dict["workgroups"] = extract_workgroups_from_labels(issue.labels)
+    issue_dict["workgroups"] = extract_workgroups_from_labels(issue.get("labels"))
 
-    issue_dict["labels"] = ", ".join([label.name for label in issue.labels])
-
-    issue_dict["assignee_ids"] = ", ".join([str(user.id) for user in issue.assignees])
-
-    issue_dict["milestone"] = (
-        None if not getattr(issue, "milestone") else issue.milestone.title
+    issue_dict["labels"] = ", ".join(
+        [label.get("name") for label in issue.get("labels")]
     )
 
-    issue_dict["is_epic"] = has_child_issues(issue.raw_data)
+    issue_dict["assignee_ids"] = ", ".join(
+        [str(user.get("id")) for user in issue.get("assignees")]
+    )
+
+    issue_dict["is_epic"] = has_child_issues(issue.get("sub_issues_summary"))
 
     for attr in [
         "title",
@@ -84,7 +99,7 @@ def issue_to_dict(issue):
         "id",
         "url",
     ]:
-        issue_dict[attr] = getattr(issue, attr)
+        issue_dict[attr] = issue.get(attr)
 
     # Preprocess issue description using the new function
     issue_dict["body"] = remove_html_comments(issue_dict["body"])
@@ -145,7 +160,7 @@ def make_project_issue_lookup(project_issues):
             ).get("name")
         except AttributeError:
             logging.info(
-                f'Issue {issue["content"]["number"]} status is {issue.get("status")}'
+                f'Errror getting issue status, Issue {issue["content"]["number"]} status is: {issue.get("status")}'
             )
     return project_issue_lookup
 
@@ -158,9 +173,9 @@ def chunks(lst, n):
 
 def main():
     logging.info("Fetching github issues...")
-    issues_gh = get_github_issues(REPO["name"], GITHUB_ACCESS_TOKEN)
-    issues = [issue_to_dict(issue) for issue in issues_gh]
+    issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN)
 
+    issues = [format_gh_issues(issue) for issue in issues_gh]
     logging.info("Converting timestamps...")
     convert_timestamps(issues)
 
