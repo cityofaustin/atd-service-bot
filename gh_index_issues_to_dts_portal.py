@@ -14,13 +14,11 @@ import sys
 
 import knackpy
 import markdown
-import json
 import requests
 
 KNACK_API_KEY = os.environ["KNACK_API_KEY"]
 KNACK_APP_ID = os.environ["KNACK_APP_ID"]
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
-REPO = "cityofaustin/atd-data-tech"
 KNACK_OBJ = "object_30"
 KNACK_TITLE_FIELD = "field_538"
 KNACK_ISSUE_NUMBER_FIELD = "field_492"
@@ -34,9 +32,9 @@ KNACK_ISSUE_ASSIGNEE = "field_675"
 # KNACK_ISSUE_ASSIGNEE = "field_690"  # staging field
 
 headers = {
-        "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
-        "Accept": "application/vnd.github+json",
-    }
+    "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
+    "Accept": "application/vnd.github+json",
+}
 
 
 def find_knack_record_by_issue(knack_records, issue_number):
@@ -70,7 +68,7 @@ def get_last_comment(issue_comment_url):
         r.raise_for_status()
         comments = r.json()
     except Exception as err:
-        print(f'An error occurred: {err}')
+        print(f"An error occurred: {err}")
 
     last_comment = comments[-1]
     last_comment_body = last_comment.get("body")
@@ -78,6 +76,7 @@ def get_last_comment(issue_comment_url):
     last_comment_date = last_comment.get("created_at")
 
     return last_comment_body, last_comment_date
+
 
 def build_payload(project_records, project_issues):
     """
@@ -92,20 +91,25 @@ def build_payload(project_records, project_issues):
         pipeline = None
         last_comment_body = None
         last_comment_date = None
+        # comments is a field that equals the number of comments on an issue
         if issue.get("comments") > 0:
-            last_comment_body, last_comment_date = get_last_comment(issue.get("comments_url"))
+            last_comment_body, last_comment_date = get_last_comment(
+                issue.get("comments_url")
+            )
 
         # an issue often has more than one assignee, this returns the list of users assigned to the issue
-        assignees = issue.assignees
-        assignees_logins = [user.login for user in assignees]
+        assignees = issue.get("assignees")
+        assignees_logins = [user.get("login") for user in assignees]
         assignees_string = " ".join(assignees_logins)
 
-
-        # ZH metadata does not include closed issues
-        if issue.state == "closed":
+        # Until we get issue fields, the only pipeline we will update is if the issue has been closed
+        if issue.get("state") == "closed":
             pipeline = "Closed"
 
-        knack_record = find_knack_record_by_issue(project_records, issue.number)
+        issue_title = issue.get("title")
+        issue_number = issue.get("number")
+
+        knack_record = find_knack_record_by_issue(project_records, issue_number)
 
         if knack_record:
             update_record = False
@@ -119,8 +123,8 @@ def build_payload(project_records, project_issues):
                 else ""
             )
 
-            if title_knack != issue.title:
-                issue_payload[KNACK_TITLE_FIELD] = issue.title
+            if title_knack != issue_title:
+                issue_payload[KNACK_TITLE_FIELD] = issue_title
                 update_record = True
             if pipeline and pipeline_knack != pipeline:
                 issue_payload[KNACK_PIPELINE_FIELD] = pipeline
