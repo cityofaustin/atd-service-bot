@@ -152,9 +152,9 @@ def format_title(issue):
 
 def create_github_issue(github_payload):
     logging.info(f"Creating issue")
-    res = requests.post(github_url, headers=GITHUB_HEADERS, data=github_payload)
+    res = requests.post(github_url, headers=GITHUB_HEADERS, json=github_payload)
     res.raise_for_status()
-    return res
+    return res.json()
 
 
 def get_token(email, pw, app_id):
@@ -223,11 +223,10 @@ def main():
             "body": issue["description"],
         }
         result = create_github_issue(github_payload)
-        print(result)
 
         knack_payload = {
             "id": issue["knack_id"],
-            "field_394": result.number,  # github issue number
+            "field_394": result.get("number"),  # github issue number
             "field_395": issue["repo"],  # repo
             "field_392": "Sent",  # github transmission status
         }
