@@ -164,7 +164,7 @@ def make_project_issue_lookup(project_issues):
             ).get("name")
         except AttributeError:
             logging.info(
-                f'Errror getting issue status, Issue {issue["content"]["number"]} status is: {issue.get("status")}'
+                f'Error getting issue status, Issue {issue["content"]["number"]} status is: {issue.get("status")}'
             )
     return project_issue_lookup
 

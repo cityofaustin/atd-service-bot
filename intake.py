@@ -35,7 +35,7 @@ KNACK_APP_ID = os.getenv("KNACK_APP_ID")
 GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 REPO = "atd-data-tech"
 
-github_url = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
+GITHUB_URL = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
 GITHUB_HEADERS = {
     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
     "Accept": "application/vnd.github+json",
@@ -151,8 +151,8 @@ def format_title(issue):
 
 
 def create_github_issue(github_payload):
-    logging.info(f"Creating issue")
-    res = requests.post(github_url, headers=GITHUB_HEADERS, json=github_payload)
+    logging.info("Creating issue")
+    res = requests.post(GITHUB_URL, headers=GITHUB_HEADERS, json=github_payload)
     res.raise_for_status()
     return res.json()
 

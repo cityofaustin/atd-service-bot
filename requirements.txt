@@ -1,4 +1,4 @@
 knackpy==1.0.*
 requests==2.32.*
 sodapy==2.1.*
-markdown==3.7.*
+markdown==3.10.*
