@@ -18,7 +18,6 @@ import logging
 import os
 import sys
 
-from github import Github
 import knackpy
 import requests
 
@@ -35,6 +34,13 @@ KNACK_API_KEY = os.getenv("KNACK_API_KEY")
 KNACK_APP_ID = os.getenv("KNACK_APP_ID")
 GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 REPO = "atd-data-tech"
+
+GITHUB_URL = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
+GITHUB_HEADERS = {
+    "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
 
 
 def map_issue(issue, fields):
@@ -144,8 +150,11 @@ def format_title(issue):
     return issue
 
 
-def get_repo(g, repo, org="cityofaustin"):
-    return g.get_repo(f"{org}/{repo}")
+def create_github_issue(github_payload):
+    logging.info("Creating issue")
+    res = requests.post(GITHUB_URL, headers=GITHUB_HEADERS, json=github_payload)
+    res.raise_for_status()
+    return res.json()
 
 
 def get_token(email, pw, app_id):
@@ -198,9 +207,6 @@ def main():
         github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
 
-    g = Github(GITHUB_ACCESS_TOKEN)
-    repo = get_repo(g, REPO)
-
     token = get_token(
         KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
         KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD,
@@ -210,16 +216,17 @@ def main():
     responses = []
 
     for issue in prepared:
-        result = repo.create_issue(
-            title=issue["title"],
-            labels=issue.get("labels"),
-            assignees=issue.get("assignee"),
-            body=issue["description"],
-        )
+        github_payload = {
+            "title": issue["title"],
+            "labels": issue.get("labels"),
+            "assignees": issue.get("assignee"),
+            "body": issue["description"],
+        }
+        result = create_github_issue(github_payload)
 
         knack_payload = {
             "id": issue["knack_id"],
-            "field_394": result.number,  # github issue number
+            "field_394": result.get("number"),  # github issue number
             "field_395": issue["repo"],  # repo
             "field_392": "Sent",  # github transmission status
         }
