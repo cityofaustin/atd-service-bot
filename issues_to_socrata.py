@@ -66,9 +66,6 @@ def get_github_issues(github_access_token):
     return issues
 
 
-
-
-
 def format_gh_issues(issue):
     """Format github issue dictionary into fields expected in the ODP"""
     issue_dict = {}

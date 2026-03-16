@@ -65,9 +65,6 @@ def get_project_index_issues():
     return issues
 
 
-
-
-
 def get_last_comment(issue_comment_url):
     try:
         r = requests.get(issue_comment_url, headers=headers)
