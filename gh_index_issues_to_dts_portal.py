@@ -9,12 +9,15 @@ portal or updating existing project records if their title or pipeline status do
 not match the title of the issue on Github."""
 
 import logging
+import html
 import os
+import re
 import sys
 
 import knackpy
 import markdown
 import requests
+
 
 KNACK_API_KEY = os.environ["KNACK_API_KEY"]
 KNACK_APP_ID = os.environ["KNACK_APP_ID"]
@@ -62,6 +65,13 @@ def get_project_index_issues():
     return issues
 
 
+def remove_html_comments(text):
+    if not isinstance(text, str):
+        return text  # Return as-is if not a string
+    # Remove HTML comments using regular expression
+    return re.sub(r"<!--(.*?)-->", "", text, flags=re.DOTALL)
+
+
 def get_last_comment(issue_comment_url):
     try:
         r = requests.get(issue_comment_url, headers=headers)
@@ -72,7 +82,12 @@ def get_last_comment(issue_comment_url):
 
     last_comment = comments[-1]
     last_comment_body = last_comment.get("body")
+    # convert comment to html
     last_comment_body = markdown.markdown(last_comment_body)
+    # remove html comments from comment, which knack will remove
+    last_comment_body = remove_html_comments(last_comment_body)
+    # unescape character encodings, which knack will will also do
+    last_comment_body = html.unescape(last_comment_body)
     last_comment_date = last_comment.get("created_at")
 
     return last_comment_body, last_comment_date
@@ -141,8 +156,8 @@ def build_payload(project_records, project_issues):
 
         else:
             issue_payload = {
-                KNACK_ISSUE_NUMBER_FIELD: issue.number,
-                KNACK_TITLE_FIELD: issue.title,
+                KNACK_ISSUE_NUMBER_FIELD: issue_number,
+                KNACK_TITLE_FIELD: issue_title,
                 KNACK_ISSUE_ASSIGNEE: assignees_string,
             }
             if pipeline is not None:
