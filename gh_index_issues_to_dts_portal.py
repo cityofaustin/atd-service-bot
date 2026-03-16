@@ -79,7 +79,7 @@ def get_last_comment(issue_comment_url):
     last_comment_body = markdown.markdown(last_comment_body)
     # remove html comments from comment, which knack will remove
     last_comment_body = remove_html_comments(last_comment_body)
-    # unescape character encodings, which knack will will also do
+    # unescape character encodings, which knack will also do
     last_comment_body = html.unescape(last_comment_body)
     last_comment_date = last_comment.get("created_at")
 
