@@ -11,7 +11,6 @@ not match the title of the issue on Github."""
 import logging
 import html
 import os
-import re
 import sys
 
 import knackpy
