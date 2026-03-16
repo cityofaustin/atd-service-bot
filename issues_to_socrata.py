@@ -12,6 +12,7 @@ import requests
 import sodapy
 
 from queries import all_project_issues_ghp
+from utils.utils import remove_html_comments
 
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
 SOCRATA_RESOURCE_ID = os.environ["SOCRATA_RESOURCE_ID"]
@@ -63,13 +64,6 @@ def get_github_issues(github_access_token):
         url = r.links.get("next", {}).get("url")  # handle pagination
         params = {}  # don't re-send params on paginated URLs
     return issues
-
-
-def remove_html_comments(text):
-    if not isinstance(text, str):
-        return text  # Return as-is if not a string
-    # Remove HTML comments using regular expression
-    return re.sub(r"<!--(.*?)-->", "", text, flags=re.DOTALL)
 
 
 def format_gh_issues(issue):
