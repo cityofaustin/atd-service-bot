@@ -18,6 +18,7 @@ import knackpy
 import markdown
 import requests
 
+from utils.utils import remove_html_comments
 
 KNACK_API_KEY = os.environ["KNACK_API_KEY"]
 KNACK_APP_ID = os.environ["KNACK_APP_ID"]
@@ -65,11 +66,7 @@ def get_project_index_issues():
     return issues
 
 
-def remove_html_comments(text):
-    if not isinstance(text, str):
-        return text  # Return as-is if not a string
-    # Remove HTML comments using regular expression
-    return re.sub(r"<!--(.*?)-->", "", text, flags=re.DOTALL)
+
 
 
 def get_last_comment(issue_comment_url):
