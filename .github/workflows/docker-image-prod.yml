@@ -3,8 +3,8 @@ name: Build and push docker image
 
 on:
   push:
-    branches:
-      - production
+    # branches:
+    #   - production
   workflow_dispatch:
 
 jobs:
@@ -27,7 +27,6 @@ jobs:
         with:
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/atd-service-bot:production
             ${{ secrets.DOCKER_USERNAME }}/atd-service-bot:staging
             ${{ secrets.DOCKER_USERNAME }}/atd-service-bot:latest
           platforms: linux/amd64,linux/arm64
