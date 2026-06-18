@@ -252,3 +252,10 @@ FIELDS = [
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
 ]
+
+# key: fullDatabaseId
+issue_fields_mapping = {
+    5181: {"socrata_name": "estimate"},
+    43035842: {"socrata_name": "description"},
+    # "10226": {"socrata_name":"pipeline", "value_key": {"single_select_option": "name"}}
+}

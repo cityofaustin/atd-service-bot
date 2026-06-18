@@ -6,13 +6,13 @@ from datetime import datetime
 import logging
 import os
 import sys
-import re
 
 import requests
 import sodapy
 
 from queries import all_project_issues_ghp
 from utils.utils import remove_html_comments
+from config.config import issue_fields_mapping
 
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
 SOCRATA_RESOURCE_ID = os.environ["SOCRATA_RESOURCE_ID"]
@@ -103,8 +103,16 @@ def format_gh_issues(issue):
     # Preprocess issue description using the new function
     issue_dict["body"] = remove_html_comments(issue_dict["body"])
 
-    # placeholder for estimate until we have issue fields available
-    issue_dict["estimate"] = None
+    # Get issue type
+    issue_dict["type"] = issue.get("type").get("name") if issue.get("type") else ""
+
+    issue_dict["estimate"] = None # estimate is issue_field 5181
+
+    if issue["issue_field_values"]:
+        for field in issue["issue_field_values"]:
+            issue_field = issue_fields_mapping.get(field["issue_field_id"])
+            if issue_field:
+                issue_dict[issue_field["socrata_name"]] = field["value"]
 
     return issue_dict
 
