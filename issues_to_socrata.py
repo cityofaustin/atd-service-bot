@@ -108,7 +108,7 @@ def format_gh_issues(issue):
 
     issue_dict["estimate"] = None # estimate is issue_field 5181
 
-    if issue["issue_field_values"]:
+    if issue.get("issue_field_values"):
         for field in issue["issue_field_values"]:
             issue_field = issue_fields_mapping.get(field["issue_field_id"])
             if issue_field:
