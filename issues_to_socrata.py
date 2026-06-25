@@ -6,7 +6,7 @@ from datetime import datetime
 import logging
 import os
 import sys
-
+import argparse
 import requests
 import sodapy
 
@@ -48,16 +48,17 @@ def has_child_issues(subissue_summary):
     return False
 
 
-def get_github_issues(github_access_token):
+def get_github_issues(github_access_token, limit):
     url = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
     headers = {
         "Authorization": f"Bearer {github_access_token}",
         "Accept": "application/vnd.github+json",
     }
-    params = {"state": "all", "per_page": 100}
+    per_page = limit if limit < 100 else 100
+    params = {"state": "open", "per_page": per_page}
 
     issues = []
-    while url:
+    while url and len(issues) < limit:
         logging.info(f"getting {url}")
         r = requests.get(url, headers=headers, params=params)
         issues.extend(r.json())
@@ -177,9 +178,10 @@ def chunks(lst, n):
         yield lst[i : i + n]
 
 
-def main():
+def main(args):
     logging.info("Fetching github issues...")
-    issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN)
+    request_limit = args.limit if args.limit else 999999
+    issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN, request_limit)
     issues = [format_gh_issues(issue) for issue in issues_gh]
 
     logging.info("Fetching Project Porfolio data...")
@@ -224,4 +226,8 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    main()
+    parser = argparse.ArgumentParser(description="Take github issues from atd-data-tech repo and upload to Socrata")
+
+    parser.add_argument("--limit", type=int, required=False, help="Issue query limit, optional")
+    args = parser.parse_args()
+    main(args)
