@@ -1,9 +1,9 @@
 # atd-service-bot
 
 This repository contains scripts that manage DTS's github issues from our Knack-based service request intake form.
-`intake.py` houses the bot that creates [issues](https://github.com/cityofaustin/atd-data-tech/issues/) from the Knack DTS Portal.
-`issues_to_socrata.py` publishes information from the issues to the [Open Data Portal](https://data.austintexas.gov) [dataset](https://datahub.austintexas.gov/Transportation-and-Mobility/Transportation-Public-Works-Data-Tech-Services-Iss/rzwg-fyv8/about_data)
-`gh_index_issues_to_dts_portal.py` creates or updates "Index" issues in the DTS Portal from Github.
+- `intake.py` houses the bot that creates [issues](https://github.com/cityofaustin/atd-data-tech/issues/) from the Knack DTS Portal.
+- `issues_to_socrata.py` publishes information from the issues to the [Open Data Portal](https://data.austintexas.gov) [dataset](https://datahub.austintexas.gov/Transportation-and-Mobility/Transportation-Public-Works-Data-Tech-Services-Iss/rzwg-fyv8/about_data)
+- `gh_index_issues_to_dts_portal.py` creates or updates "Index" issues in the DTS Portal from Github.
 
 
 ## Get it going
