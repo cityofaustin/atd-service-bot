@@ -2,7 +2,7 @@
 
 This repository contains scripts that manage DTS's github issues from our Knack-based service request intake form.
 `intake.py` houses the bot that creates [issues](https://github.com/cityofaustin/atd-data-tech/issues/) from the Knack DTS Portal.
-`issues_to_socrata.py` publishes information from the issues to the [Open Data Portal](https://data.austintexas.gov)
+`issues_to_socrata.py` publishes information from the issues to the [Open Data Portal](https://data.austintexas.gov) [dataset](https://datahub.austintexas.gov/Transportation-and-Mobility/Transportation-Public-Works-Data-Tech-Services-Iss/rzwg-fyv8/about_data)
 `gh_index_issues_to_dts_portal.py` creates or updates "Index" issues in the DTS Portal from Github.
 
 
@@ -37,6 +37,8 @@ docker compose run --rm service-bot
 
 - While inside the shell provided by the container, you can run the scripts, and you
   are able to continue to edit them outside of the container because they are bind-mounted in.
+
+- `issues_to_socrata.py` takes an optional flag `--limit`, limiting the number of issues requested from github. This is particuarly helpful when doing local development and testing with the [staging dataset](https://datahub.austintexas.gov/Transportation-and-Mobility/Transportation-Public-Works-Data-Tech-Services-Iss/rzwg-fyv8/about_data)
 
 ## How it works
 
