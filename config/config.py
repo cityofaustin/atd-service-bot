@@ -254,7 +254,7 @@ FIELDS = [
 ]
 
 # key: fullDatabaseId
-issue_fields_mapping = {
+ISSUE_FIELDS_MAPPING = {
     5181: {"socrata_name": "estimate"},
     43035842: {"socrata_name": "description"},
     # "10226": {"socrata_name":"pipeline", "data_type": "single_select"}}
