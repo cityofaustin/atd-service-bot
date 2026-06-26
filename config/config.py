@@ -12,12 +12,6 @@ FIELDS = [
         "format": "quote_text",
     },  # name
     {
-        "knack": "field_406",
-        "github": "description",
-        "method": "merge",
-        "format": "quote_text_hidden",
-    },  # email
-    {
         "knack": "field_400",
         "github": "title",
         "method": "copy",
@@ -91,7 +85,7 @@ FIELDS = [
         "format": "quote_text",
     },  # Describe workarounds
     {
-        "knack": "field_390",  # Division
+        "knack": "field_1101",  # Division
         "github": "labels",
         "method": "map_append",
         "format": "quote_text",
@@ -131,6 +125,7 @@ FIELDS = [
             "Urban Forestry": "Workgroup: Urban Forestry",
             "Utilities & Structures": "Workgroup: Utilities & Structures",
             "Vision Zero": "Workgroup: VZ",
+            "Other": "Workgroup: Other"
         },
     },
     {
