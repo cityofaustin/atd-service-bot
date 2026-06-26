@@ -246,4 +246,11 @@ FIELDS = [
     },
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
+    {
+        "knack": "id",
+        "github": "description",
+        "method": "transform_merge",
+        "transform": "knack_issue_url",
+        "rename": "Knack link to issue",
+    },
 ]
