@@ -10,6 +10,11 @@ def app_url(record_id):
     return f"https://atd.knack.com/dts#service-requests/view-issue-details/{record_id}"
 
 
+def knack_issue_url(record_id):
+    url = f"https://atd.knack.com/dts#manage-service-requests/triage-service-request/{record_id}/"
+    return f"[{record_id}]({url})"
+
+
 # courtesy of https://stackoverflow.com/questions/5194057/better-way-to-convert-file-sizes-in-python
 def convert_size(size_bytes):
     if size_bytes == 0:
