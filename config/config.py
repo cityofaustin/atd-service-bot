@@ -229,6 +229,23 @@ FIELDS = [
         "rename": "Workgroup",
     },
     {
+        "knack": "field_1099",  # DTS Service Group
+        "github": "labels",
+        "method": "map_append",
+        "map": {
+            "Team: Apps": "Team: Apps",
+            "Team: Geo": "Team: Geo",
+            "Team: Dev": "Team: Dev",
+            "Team: Product": "Team: Product",
+            "Team: Maximo": "Team: Maximo",
+            "Team: Amanda": "Team: AMANDA",
+            "Team: Data Science": "Team: Data Science",
+            "Team: DTS Operations": "Team: DTS Operations",
+            "Team: Tech Services": "Team: Tech Services",
+            "[Team] :rotating_light: MISSING": "[Team] :rotating_light: MISSING",
+        },
+    },
+    {
         "knack": "field_1099",
         "github": "description",
         "method": "merge",
