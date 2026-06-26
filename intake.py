@@ -69,6 +69,9 @@ def map_issue(issue, fields):
 
             value = issue[knack_field_id]
 
+            if field.get("rename"):
+                knack_field_label = field.get("rename")
+
             if field.get("format") == "quote_text":
                 label = f"> {knack_field_label}\n\n"
                 value = f"{value}\n\n"
