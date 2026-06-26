@@ -223,6 +223,18 @@ FIELDS = [
         },
     },
     {
+        "knack": "field_1101",
+        "github": "description",
+        "method": "merge",
+        "rename": "Workgroup",
+    },
+    {
+        "knack": "field_1099",
+        "github": "description",
+        "method": "merge",
+        "rename": "DTS Service Group",
+    },
+    {
         "knack": "field_401",
         "github": "description",
         "method": "merge",
@@ -245,6 +257,7 @@ FIELDS = [
         "format": "no_label",
     },
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
+
     {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
     {
         "knack": "id",
