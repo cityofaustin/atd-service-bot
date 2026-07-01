@@ -67,7 +67,7 @@ def map_issue(issue, fields):
         if field["method"] == "merge":
             old_value = github_issue[field["github"]]
 
-            value = issue[knack_field_id]
+            value = knack_field_value
 
             if field.get("rename"):
                 knack_field_label = field.get("rename")
