@@ -24,6 +24,8 @@ import requests
 from config.config import KNACK_APP, FIELDS
 import _transforms
 
+import pprint
+
 KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.getenv(
     "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME"
 )
