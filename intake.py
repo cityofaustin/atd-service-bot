@@ -210,6 +210,10 @@ def main():
         github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
 
+    print("\n----\n")
+    print("Prepared issues:")
+    pprint.pprint(prepared)
+
     token = get_token(
         KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
         KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD,
