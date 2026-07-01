@@ -24,8 +24,6 @@ import requests
 from config.config import KNACK_APP, FIELDS
 import _transforms
 
-import pprint
-
 KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.getenv(
     "KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME"
 )
@@ -211,10 +209,6 @@ def main():
         # be sent to the transportation.data inbox, to be handled by the service desk
         github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
-
-    print("\n----\n")
-    print("Prepared issues:")
-    pprint.pprint(prepared)
 
     token = get_token(
         KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
