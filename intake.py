@@ -235,7 +235,7 @@ def main():
         }
 
         # update knack record as "Sent" using form API, which will
-        # trigger an email notificaiton if warranted
+        # trigger an email notification if warranted
         response = form_submit(
             token,
             KNACK_APP_ID,
