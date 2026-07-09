@@ -246,13 +246,6 @@ FIELDS = [
         },
     },
     {
-        "knack": "field_1099",
-        "github": "description",
-        "method": "merge",
-        "rename": "DTS Service Group",
-        "format": "quote_text",
-    },
-    {
         "knack": "field_401",
         "github": "description",
         "method": "merge",
