@@ -268,7 +268,11 @@ FIELDS = [
         "format": "no_label",
     },
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
-
+    {
+        "knack": "field_1122",
+        "github": "assignee",
+        "method": "split_append",
+    },  # github usernames (comma-delimited)
     {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
     {
         "knack": "id",

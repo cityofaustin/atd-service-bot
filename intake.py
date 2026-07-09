@@ -48,6 +48,7 @@ def map_issue(issue, fields):
         "description": "",
         "labels": [],
         "title": "",
+        "assignee": [],
         "github_url": None,
         "knack_id": None,
         "repo": REPO,  # hardcoded since we switched to a monorepo
@@ -132,6 +133,12 @@ def map_issue(issue, fields):
 
         elif field["method"] == "copy":
             github_issue[field["github"]] = knack_field_value
+
+        elif field["method"] == "split_append":
+            for val in knack_field_value.split(","):
+                val = val.strip()
+                if val:
+                    github_issue[field["github"]].append(val)
 
     return github_issue
 
