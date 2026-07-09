@@ -250,6 +250,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "rename": "DTS Service Group",
+        "format": "quote_text",
     },
     {
         "knack": "field_401",
