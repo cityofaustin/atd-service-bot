@@ -103,6 +103,12 @@ def map_issue(issue, fields):
             if field.get("rename"):
                 knack_field_label = field.get("rename")
 
+            # Use special header name if sensitive information is available in Knack
+            if field.get("transform") == "knack_issue_url" and issue.get(
+                "field_1134"
+            ) in (1, "1"):
+                knack_field_label = "Additional Details available in Knack"
+
             if field.get("format") == "no_label":
                 new_value = f"{old_value}{transformed_value}\n\n"
 
