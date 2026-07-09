@@ -74,7 +74,7 @@ def map_issue(issue, fields):
                 knack_field_label = field.get("rename")
 
             if field.get("format") == "quote_text":
-                label = f"#### {knack_field_label}\n\n"
+                label = f"### {knack_field_label}\n\n"
                 value = f"{value}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
@@ -86,7 +86,7 @@ def map_issue(issue, fields):
                 new_value = f"{label}{value}{old_value}"
 
             else:
-                new_value = f"{old_value}#### {knack_field_label}\n\n{value}\n\n"
+                new_value = f"{old_value}### {knack_field_label}\n\n{value}\n\n"
 
             github_issue[field["github"]] = new_value
 
@@ -107,14 +107,14 @@ def map_issue(issue, fields):
                 new_value = f"{old_value}{transformed_value}\n\n"
 
             elif field.get("format") == "quote_text":
-                label = f"#### {knack_field_label}\n\n"
+                label = f"### {knack_field_label}\n\n"
 
                 value = f"{transformed_value}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
 
             else:
-                new_value = f"{old_value}#### {knack_field_label}\n\n{transformed_value}\n\n"
+                new_value = f"{old_value}### {knack_field_label}\n\n{transformed_value}\n\n"
 
             github_issue[field["github"]] = new_value
 
@@ -212,9 +212,10 @@ def main():
         # turn knack issues into github issues
         github_issue = map_issue(issue, FIELDS)
         github_issue = format_title(github_issue)
-        # all issues are assigned to the service bot. on issue creation an email will
-        # be sent to the transportation.data inbox, to be handled by the service desk
-        github_issue["assignee"] = ["atdservicebot"]
+        if not github_issue["assignee"]:
+            # fallback when field_1122 is empty; on issue creation an email will
+            # be sent to the transportation.data inbox, to be handled by the service desk
+            github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
 
     token = get_token(
