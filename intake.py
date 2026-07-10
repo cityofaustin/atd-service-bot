@@ -146,6 +146,9 @@ def map_issue(issue, fields):
                 if val:
                     github_issue[field["github"]].append(val)
 
+        elif field["method"] == "append":
+            github_issue[field["github"]].append(knack_field_value)
+
     return github_issue
 
 

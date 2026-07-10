@@ -244,6 +244,11 @@ FIELDS = [
         "github": "assignee",
         "method": "split_append",
     },  # github usernames (comma-delimited)
+    {
+        "knack": "field_1129",
+        "github": "labels",
+        "method": "append",
+    },
     {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
     {
         "knack": "id",
