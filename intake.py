@@ -104,7 +104,12 @@ def map_issue(issue, fields):
 
             # get the transform function
             transform_func = getattr(_transforms, field["transform"])
-            transformed_value = transform_func(untransformed)
+            if field.get("transform") == "knack_issue_url":
+                transformed_value = transform_func(
+                    untransformed, issue.get("field_388")
+                )
+            else:
+                transformed_value = transform_func(untransformed)
 
             # now merge
             old_value = github_issue[field["github"]]

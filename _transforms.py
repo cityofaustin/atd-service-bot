@@ -10,9 +10,10 @@ def app_url(record_id):
     return f"https://atd.knack.com/dts#service-requests/view-issue-details/{record_id}"
 
 
-def knack_issue_url(record_id):
+def knack_issue_url(record_id, request_id=None):
     url = f"https://atd.knack.com/dts#manage-service-requests/triage-service-request/{record_id}/"
-    return f"[{record_id}]({url})"
+    label = request_id or record_id
+    return f"[DTS Service Request Details - {label}]({url})"
 
 
 # courtesy of https://stackoverflow.com/questions/5194057/better-way-to-convert-file-sizes-in-python

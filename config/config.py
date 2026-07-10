@@ -249,7 +249,6 @@ FIELDS = [
         "github": "labels",
         "method": "append",
     },
-    {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
     {
         "knack": "id",
         "github": "description",
