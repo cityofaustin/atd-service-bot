@@ -18,11 +18,11 @@ FIELDS = [
         "format": "none",
     },  # Describe the problem (duplicated because this goes into the title and description body)
     {
-        "knack": "field_1131",  # App name
+        "knack": "field_1131",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    },
+    }, # App name
     {
         "knack": "field_400",
         "github": "description",
@@ -127,7 +127,7 @@ FIELDS = [
             "Vision Zero": "Workgroup: VZ",
             "Other": "Workgroup: Other"
         },
-    },
+    }, # add Division to labels
     {
         "knack": "field_404",  # Impact
         "github": "labels",
@@ -198,7 +198,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "rename": "Workgroup",
-    },
+    }, # Workgroup
     {
         "knack": "field_1099",  # DTS Service Group
         "github": "labels",
@@ -238,23 +238,23 @@ FIELDS = [
         "transform": "parse_attachment_url",
         "format": "quote_text",
         "rename": "Attachments",
-    },
+    }, # Attachments indicator
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {
         "knack": "field_1122",
         "github": "assignee",
         "method": "split_append",
-    },  # github usernames (comma-delimited)
+    },  # github usernames (comma-delimited) for assignees
     {
         "knack": "field_1129",
         "github": "labels",
         "method": "append",
-    },
+    }, # application label
     {
         "knack": "id",
         "github": "description",
         "method": "transform_merge",
         "transform": "knack_issue_url",
         "rename": "Knack link to issue",
-    },
+    }, # Link back to the knack issue
 ]
