@@ -18,7 +18,7 @@ FIELDS = [
         "format": "none",
     },  # Describe the problem (duplicated because this goes into the title and description body)
     {
-        "knack": "field_399",  # App name
+        "knack": "field_1131",  # App name
         "github": "description",
         "method": "merge",
         "format": "quote_text",
