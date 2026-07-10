@@ -27,12 +27,8 @@ def convert_size(size_bytes):
     return f"{s}{size_name[i]}"
 
 
-def parse_attachment_url(obj):
-    url = obj.get("url")
-    size = convert_size(obj.get("size"))
-
-    # format as markdown
-    return f"[Attachment]({url}) ({size})"
+def parse_attachment_url(_obj):
+    return "Attachments available in Knack"
 
 
 def parse_email(email_addr):

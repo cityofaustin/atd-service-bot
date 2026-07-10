@@ -236,7 +236,8 @@ FIELDS = [
         "github": "description",
         "method": "transform_merge",
         "transform": "parse_attachment_url",
-        "format": "no_label",
+        "format": "quote_text",
+        "rename": "Attachments",
     },
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {
