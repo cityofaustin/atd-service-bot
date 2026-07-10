@@ -43,6 +43,13 @@ GITHUB_HEADERS = {
 }
 
 
+def blockquote(text):
+    lines = str(text).splitlines()
+    if not lines:
+        return ">"
+    return "\n".join(f"> {line}" if line else ">" for line in lines)
+
+
 def map_issue(issue, fields):
     github_issue = {
         "description": "",
@@ -75,7 +82,7 @@ def map_issue(issue, fields):
 
             if field.get("format") == "quote_text":
                 label = f"### {knack_field_label}\n\n"
-                value = f"{value}\n\n"
+                value = f"{blockquote(value)}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
 
@@ -86,7 +93,9 @@ def map_issue(issue, fields):
                 new_value = f"{label}{value}{old_value}"
 
             else:
-                new_value = f"{old_value}### {knack_field_label}\n\n{value}\n\n"
+                new_value = (
+                    f"{old_value}### {knack_field_label}\n\n{blockquote(value)}\n\n"
+                )
 
             github_issue[field["github"]] = new_value
 
@@ -115,12 +124,15 @@ def map_issue(issue, fields):
             elif field.get("format") == "quote_text":
                 label = f"### {knack_field_label}\n\n"
 
-                value = f"{transformed_value}\n\n"
+                value = f"{blockquote(transformed_value)}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
 
             else:
-                new_value = f"{old_value}### {knack_field_label}\n\n{transformed_value}\n\n"
+                new_value = (
+                    f"{old_value}### {knack_field_label}\n\n"
+                    f"{blockquote(transformed_value)}\n\n"
+                )
 
             github_issue[field["github"]] = new_value
 
