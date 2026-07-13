@@ -17,6 +17,7 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 import logging
 import os
 import sys
+from pprint import pprint
 
 import knackpy
 import requests
@@ -243,6 +244,8 @@ def main():
             # be sent to the transportation.data inbox, to be handled by the service desk
             github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
+
+    pprint(prepared)
 
     token = get_token(
         KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
