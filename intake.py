@@ -268,7 +268,7 @@ def main():
             "id": issue["knack_id"],
             "field_394": result.get("number"),  # github issue number
             "field_395": issue["repo"],  # repo
-            "field_1125": "SENT",  # github transmission status
+            "field_1125": "SENT",  # knack triage status
         }
 
         # update knack record as "Sent" using form API, which will

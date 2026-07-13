@@ -246,7 +246,7 @@ FIELDS = [
         "method": "split_append",
     },  # github usernames (comma-delimited) for assignees
     {
-        "knack": "field_1129",
+        "knack": "field_1133",
         "github": "labels",
         "method": "append",
     }, # application label
