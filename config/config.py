@@ -101,7 +101,7 @@ FIELDS = [
             "Enforcement Services": "Workgroup: Enforcement Services",
             "Finance": "Workgroup: Finance",
             "Human Resources": "Workgroup: HR",
-            "Land Development Engineering": "Workgroup: Land Development Engineering",
+            "Land Development Engineering": "Workgroup: LDE",
             "Logistics": "Workgroup: Logistics",
             "Mobility Services": "Workgroup: Mobility Services",
             "Office of Performance Management": "Workgroup: OPM",
