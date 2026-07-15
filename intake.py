@@ -245,8 +245,6 @@ def main():
             github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
 
-    pprint(prepared)
-
     token = get_token(
         KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
         KNACK_DTS_PORTAL_SERVICE_BOT_PASSWORD,
@@ -256,6 +254,9 @@ def main():
     responses = []
 
     for issue in prepared:
+        
+        pprint(issue)
+
         github_payload = {
             "title": issue["title"],
             "labels": issue.get("labels"),
