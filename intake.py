@@ -17,7 +17,6 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 import logging
 import os
 import sys
-
 import knackpy
 import requests
 
@@ -43,11 +42,19 @@ GITHUB_HEADERS = {
 }
 
 
+def blockquote(text):
+    lines = str(text).splitlines()
+    if not lines:
+        return ">"
+    return "\n".join(f"> {line}" if line else ">" for line in lines)
+
+
 def map_issue(issue, fields):
     github_issue = {
         "description": "",
         "labels": [],
         "title": "",
+        "assignee": [],
         "github_url": None,
         "knack_id": None,
         "repo": REPO,  # hardcoded since we switched to a monorepo
@@ -67,11 +74,14 @@ def map_issue(issue, fields):
         if field["method"] == "merge":
             old_value = github_issue[field["github"]]
 
-            value = issue[knack_field_id]
+            value = knack_field_value
+
+            if field.get("rename"):
+                knack_field_label = field.get("rename")
 
             if field.get("format") == "quote_text":
-                label = f"> {knack_field_label}\n\n"
-                value = f"{value}\n\n"
+                label = f"### {knack_field_label}\n\n"
+                value = f"{blockquote(value)}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
 
@@ -82,7 +92,9 @@ def map_issue(issue, fields):
                 new_value = f"{label}{value}{old_value}"
 
             else:
-                new_value = f"{old_value}{knack_field_label}: {value}\n\n"
+                new_value = (
+                    f"{old_value}### {knack_field_label}\n\n{blockquote(value)}\n\n"
+                )
 
             github_issue[field["github"]] = new_value
 
@@ -91,7 +103,12 @@ def map_issue(issue, fields):
 
             # get the transform function
             transform_func = getattr(_transforms, field["transform"])
-            transformed_value = transform_func(untransformed)
+            if field.get("transform") == "knack_issue_url":
+                transformed_value = transform_func(
+                    untransformed, issue.get("field_388") # Request ID
+                )
+            else:
+                transformed_value = transform_func(untransformed)
 
             # now merge
             old_value = github_issue[field["github"]]
@@ -99,18 +116,27 @@ def map_issue(issue, fields):
             if field.get("rename"):
                 knack_field_label = field.get("rename")
 
+            # Use special header name if sensitive information is available in Knack
+            if field.get("transform") == "knack_issue_url" and issue.get(
+                "field_1134" # boolean for if additional details are available in Knack
+            ) in (1, "1"):
+                knack_field_label = "Additional Details available in Knack"
+
             if field.get("format") == "no_label":
                 new_value = f"{old_value}{transformed_value}\n\n"
 
             elif field.get("format") == "quote_text":
-                label = f"> {knack_field_label}\n"
+                label = f"### {knack_field_label}\n\n"
 
-                value = f"{transformed_value}\n\n"
+                value = f"{blockquote(transformed_value)}\n\n"
 
                 new_value = f"{old_value}{label}{value}"
 
             else:
-                new_value = f"{old_value}{knack_field_label}: {transformed_value}\n\n"
+                new_value = (
+                    f"{old_value}### {knack_field_label}\n\n"
+                    f"{blockquote(transformed_value)}\n\n"
+                )
 
             github_issue[field["github"]] = new_value
 
@@ -129,6 +155,15 @@ def map_issue(issue, fields):
 
         elif field["method"] == "copy":
             github_issue[field["github"]] = knack_field_value
+
+        elif field["method"] == "split_append":
+            for val in knack_field_value.split(","):
+                val = val.strip()
+                if val:
+                    github_issue[field["github"]].append(val)
+
+        elif field["method"] == "append":
+            github_issue[field["github"]].append(knack_field_value)
 
     return github_issue
 
@@ -202,9 +237,10 @@ def main():
         # turn knack issues into github issues
         github_issue = map_issue(issue, FIELDS)
         github_issue = format_title(github_issue)
-        # all issues are assigned to the service bot. on issue creation an email will
-        # be sent to the transportation.data inbox, to be handled by the service desk
-        github_issue["assignee"] = ["atdservicebot"]
+        if not github_issue["assignee"]:
+            # fallback when field_1122 is empty; on issue creation an email will
+            # be sent to the transportation.data inbox, to be handled by the service desk
+            github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
 
     token = get_token(
@@ -216,6 +252,8 @@ def main():
     responses = []
 
     for issue in prepared:
+        logging.info(issue)
+
         github_payload = {
             "title": issue["title"],
             "labels": issue.get("labels"),
@@ -228,11 +266,11 @@ def main():
             "id": issue["knack_id"],
             "field_394": result.get("number"),  # github issue number
             "field_395": issue["repo"],  # repo
-            "field_392": "Sent",  # github transmission status
+            "field_1125": "SENT",  # knack triage status
         }
 
         # update knack record as "Sent" using form API, which will
-        # trigger an email notificaiton if warranted
+        # trigger an email notification if warranted
         response = form_submit(
             token,
             KNACK_APP_ID,

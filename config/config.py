@@ -12,23 +12,17 @@ FIELDS = [
         "format": "quote_text",
     },  # name
     {
-        "knack": "field_406",
-        "github": "description",
-        "method": "merge",
-        "format": "quote_text_hidden",
-    },  # email
-    {
         "knack": "field_400",
         "github": "title",
         "method": "copy",
         "format": "none",
     },  # Describe the problem (duplicated because this goes into the title and description body)
     {
-        "knack": "field_399",  # App name
+        "knack": "field_1131",
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    },
+    }, # App name
     {
         "knack": "field_400",
         "github": "description",
@@ -91,7 +85,7 @@ FIELDS = [
         "format": "quote_text",
     },  # Describe workarounds
     {
-        "knack": "field_390",  # Division
+        "knack": "field_1101",  # Division
         "github": "labels",
         "method": "map_append",
         "format": "quote_text",
@@ -107,7 +101,7 @@ FIELDS = [
             "Enforcement Services": "Workgroup: Enforcement Services",
             "Finance": "Workgroup: Finance",
             "Human Resources": "Workgroup: HR",
-            "Land Development Engineering": "Workgroup: Land Development Engineering",
+            "Land Development Engineering": "Workgroup: LDE",
             "Logistics": "Workgroup: Logistics",
             "Mobility Services": "Workgroup: Mobility Services",
             "Office of Performance Management": "Workgroup: OPM",
@@ -131,8 +125,9 @@ FIELDS = [
             "Urban Forestry": "Workgroup: Urban Forestry",
             "Utilities & Structures": "Workgroup: Utilities & Structures",
             "Vision Zero": "Workgroup: VZ",
+            "Other": "Workgroup: Other"
         },
-    },
+    }, # add Division to labels
     {
         "knack": "field_404",  # Impact
         "github": "labels",
@@ -199,32 +194,26 @@ FIELDS = [
         },
     },
     {
-        "knack": "field_399",
+        "knack": "field_1101",
+        "github": "description",
+        "method": "merge",
+        "rename": "Workgroup",
+    }, # Workgroup
+    {
+        "knack": "field_1099",  # DTS Service Group
         "github": "labels",
         "method": "map_append",
         "map": {
-            "AMANDA": "Product: AMANDA",
-            "AMD Data Tracker": "Product: AMD Data Tracker",
-            "ArcGIS": "Team: Geo",
-            "COORDINATE": "Product: COORDINATE",
-            "Data & Technology Services Portal": "Product: Data & Technology Services Portal",
-            "Finance & Purchasing Portal": "Product: Finance & Purchasing Portal",
-            "Human Resources Portal": "Product: Human Resources Portal",
-            "Maximo": "Product: Maximo",
-            "Moped": "Product: Moped",
-            "Office 365 (Teams, Sharepoint, etc.)": "Product: O365",
-            "Parking Enterprise Portal": "Product: Parking Enterprise Portal",
-            "Residential Parking Permits": "Product: Residential Parking Permits Portal",
-            "Right of Way Portal": "Product: ROW Portal",
-            "Shared Mobility Services Portal": "Product: Shared Mobility Services Portal",
-            "Smart Mobility Office Portal": "Product: Smart Mobility Office Portal",
-            "SMD Data Tracker": "Product: SMD Data Tracker",
-            "Street Banner Program Portal": "Product: Street Banner Program Portal",
-            "Traffic Register": "Product: Traffic Register",
-            "Transportation Development Services Portal": "Product: TDS Portal",
-            "Vision Zero Editor": "Product: Vision Zero Crash Data System",
-            "Vision Zero Viewer": "Product: Vision Zero Viewer",
-            "Vision Zero in Action": "Product: Vision Zero In Action",
+            "Team: Apps": "Team: Apps",
+            "Team: Geo": "Team: Geo",
+            "Team: Dev": "Team: Dev",
+            "Team: Product": "Team: Product",
+            "Team: Maximo": "Team: Maximo",
+            "Team: Amanda": "Team: AMANDA",
+            "Team: Data Science": "Team: Data Science",
+            "Team: DTS Operations": "Team: DTS Operations",
+            "Team: Tech Services": "Team: Tech Services",
+            "[Team] :rotating_light: MISSING": "[Team] :rotating_light: MISSING",
         },
     },
     {
@@ -247,10 +236,27 @@ FIELDS = [
         "github": "description",
         "method": "transform_merge",
         "transform": "parse_attachment_url",
-        "format": "no_label",
-    },
+        "format": "quote_text",
+        "rename": "Attachments",
+    }, # Attachments indicator
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
-    {"knack": "field_388", "github": "description", "method": "merge"},  # request ID
+    {
+        "knack": "field_1122",
+        "github": "assignee",
+        "method": "split_append",
+    },  # github usernames (comma-delimited) for assignees
+    {
+        "knack": "field_1133",
+        "github": "labels",
+        "method": "append",
+    }, # application label
+    {
+        "knack": "id",
+        "github": "description",
+        "method": "transform_merge",
+        "transform": "knack_issue_url",
+        "rename": "Knack link to issue",
+    }, # Link back to the knack issue
 ]
 
 # key: fullDatabaseId
