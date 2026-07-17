@@ -17,8 +17,6 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 import logging
 import os
 import sys
-from pprint import pprint
-
 import knackpy
 import requests
 
@@ -254,8 +252,7 @@ def main():
     responses = []
 
     for issue in prepared:
-        
-        pprint(issue)
+        logging.info(issue)
 
         github_payload = {
             "title": issue["title"],
