@@ -105,7 +105,7 @@ def map_issue(issue, fields):
             transform_func = getattr(_transforms, field["transform"])
             if field.get("transform") == "knack_issue_url":
                 transformed_value = transform_func(
-                    untransformed, issue.get("field_388")
+                    untransformed, issue.get("field_388") # Request ID
                 )
             else:
                 transformed_value = transform_func(untransformed)
@@ -118,7 +118,7 @@ def map_issue(issue, fields):
 
             # Use special header name if sensitive information is available in Knack
             if field.get("transform") == "knack_issue_url" and issue.get(
-                "field_1134"
+                "field_1134" # boolean for if additional details are available in Knack
             ) in (1, "1"):
                 knack_field_label = "Additional Details available in Knack"
 
