@@ -55,7 +55,7 @@ def get_github_issues(github_access_token, limit):
         "Accept": "application/vnd.github+json",
     }
     per_page = limit if limit < 100 else 100
-    params = {"state": "open", "per_page": per_page}
+    params = {"state": "all", "per_page": per_page}
 
     issues = []
     while url and len(issues) < limit:
