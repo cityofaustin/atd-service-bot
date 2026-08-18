@@ -202,6 +202,10 @@ def main(args):
             # this is temporary until we get issue fields
             issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
 
+    if args.dry_run:
+        logging.info(f"Dry run: skipping Socrata upload of {len(issues)} issues")
+        return
+
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,
         SOCRATA_APP_TOKEN,
@@ -229,5 +233,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Take github issues from atd-data-tech repo and upload to Socrata")
 
     parser.add_argument("--limit", type=int, required=False, help="Issue query limit, optional")
+    parser.add_argument(
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="Fetch and process issues without uploading to Socrata",
+    )
     args = parser.parse_args()
     main(args)
