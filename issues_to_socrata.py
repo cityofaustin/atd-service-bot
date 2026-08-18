@@ -184,7 +184,7 @@ def main(args):
     issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN, request_limit)
     issues = [format_gh_issues(issue) for issue in issues_gh]
 
-    logging.info("Fetching Project Porfolio data...")
+    logging.info("Fetching Project Portfolio data...")
     project_portfolio_issues = get_project_portfolio_issues(
         query=all_project_issues_ghp,
         endpoint=GITHUB_ENDPOINT,
