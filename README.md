@@ -38,7 +38,15 @@ docker compose run --rm service-bot
 - While inside the shell provided by the container, you can run the scripts, and you
   are able to continue to edit them outside of the container because they are bind-mounted in.
 
-- `issues_to_socrata.py` takes an optional flag `--limit`, limiting the number of issues requested from github. This is particularly helpful when doing local development and testing with the [staging dataset](https://datahub.austintexas.gov/Transportation-and-Mobility/Test-Transportation-and-Public-Works-Data-and-Tech/93ru-6p6e/about_data)
+- `issues_to_socrata.py` takes a few optional flags that are helpful for local development and testing with the [staging dataset](https://datahub.austintexas.gov/Transportation-and-Mobility/Test-Transportation-and-Public-Works-Data-and-Tech/93ru-6p6e/about_data):
+  - `--limit` — limit the number of issues requested from GitHub
+  - `--dry-run` / `-n` — fetch and process issues without uploading to Socrata
+  - `--verbose` / `-v` — log the shape of payloads as they move through the script; `-vv` also dumps the full records
+
+```bash
+python issues_to_socrata.py --dry-run --limit 10 -v
+python issues_to_socrata.py -n --limit 5 -vv
+```
 
 ## How it works
 
