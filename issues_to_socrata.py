@@ -12,6 +12,7 @@ import sodapy
 
 from queries import all_project_issues_ghp
 from utils.utils import remove_html_comments
+from utils.verbose import log_data
 from config.config import ISSUE_FIELDS_MAPPING
 
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
@@ -61,7 +62,9 @@ def get_github_issues(github_access_token, limit):
     while url and len(issues) < limit:
         logging.info(f"getting {url}")
         r = requests.get(url, headers=headers, params=params)
-        issues.extend(r.json())
+        page = r.json()
+        issues.extend(page)
+        logging.debug(f"GitHub issues page: {len(page)} items, total={len(issues)}")
         url = r.links.get("next", {}).get("url")  # handle pagination
         params = {}  # don't re-send params on paginated URLs
     return issues
@@ -145,8 +148,10 @@ def get_project_portfolio_issues(*, query, endpoint, admin_secret):
             end_cursor = data["data"]["organization"]["projectV2"]["items"]["pageInfo"][
                 "endCursor"
             ]
-            issues = (
-                issues + data["data"]["organization"]["projectV2"]["items"]["nodes"]
+            nodes = data["data"]["organization"]["projectV2"]["items"]["nodes"]
+            issues = issues + nodes
+            logging.debug(
+                f"Project portfolio page: {len(nodes)} items, total={len(issues)}, has_next_page={has_next_page}"
             )
         except KeyError:
             raise ValueError(data)
@@ -182,16 +187,21 @@ def main(args):
     logging.info("Fetching github issues...")
     request_limit = args.limit if args.limit else 999999
     issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN, request_limit)
-    issues = [format_gh_issues(issue) for issue in issues_gh]
+    log_data("GitHub issues", issues_gh, args.verbose)
 
-    logging.info("Fetching Project Porfolio data...")
+    issues = [format_gh_issues(issue) for issue in issues_gh]
+    log_data("Formatted issues", issues, args.verbose)
+
+    logging.info("Fetching Project Portfolio data...")
     project_portfolio_issues = get_project_portfolio_issues(
         query=all_project_issues_ghp,
         endpoint=GITHUB_ENDPOINT,
         admin_secret=GITHUB_ACCESS_TOKEN,
     )
+    log_data("Project portfolio issues", project_portfolio_issues, args.verbose)
 
     portfolio_issues_dict = make_project_issue_lookup(project_portfolio_issues)
+    log_data("Portfolio issue lookup", portfolio_issues_dict, args.verbose)
 
     logging.info("Processing statuses...")
     for issue in issues:
@@ -201,6 +211,11 @@ def main(args):
             # if issue is not in the portfolio issues dictionary, the pipeline is None
             # this is temporary until we get issue fields
             issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
+    log_data("Issues with pipeline", issues, args.verbose)
+
+    if args.dry_run:
+        logging.info(f"Dry run: skipping Socrata upload of {len(issues)} issues")
+        return
 
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,
@@ -214,6 +229,11 @@ def main(args):
     first_chunk = True
     count_processed = 0
     for chunk in chunks(issues, 1000):
+        log_data(
+            f"Socrata chunk {count_processed + 1}-{count_processed + len(chunk)}",
+            chunk,
+            args.verbose,
+        )
         if first_chunk:
             # completely replace dataset to ensure deleted issues are flushed
             client.replace(SOCRATA_RESOURCE_ID, issues)
@@ -225,9 +245,25 @@ def main(args):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     parser = argparse.ArgumentParser(description="Take github issues from atd-data-tech repo and upload to Socrata")
 
     parser.add_argument("--limit", type=int, required=False, help="Issue query limit, optional")
+    parser.add_argument(
+        "-n",
+        "--dry-run",
+        action="store_true",
+        help="Fetch and process issues without uploading to Socrata",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Show data shapes (-v); also dump payloads (-vv)",
+    )
     args = parser.parse_args()
+    logging.basicConfig(
+        stream=sys.stdout,
+        level=logging.DEBUG if args.verbose else logging.INFO,
+    )
     main(args)
