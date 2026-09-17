@@ -71,6 +71,7 @@ def format_gh_issues(issue):
     """Format github issue dictionary into fields expected in the ODP"""
     issue_dict = {}
 
+    # will be divisions in the future
     issue_dict["workgroups"] = extract_workgroups_from_labels(issue.get("labels"))
 
     issue_dict["labels"] = ", ".join(
@@ -80,8 +81,6 @@ def format_gh_issues(issue):
     issue_dict["assignee_ids"] = ", ".join(
         [str(user.get("id")) for user in issue.get("assignees")]
     )
-
-    issue_dict["is_epic"] = has_child_issues(issue.get("sub_issues_summary"))
 
     for attr in [
         "title",
@@ -111,9 +110,12 @@ def format_gh_issues(issue):
 
     if issue.get("issue_field_values"):
         for field in issue["issue_field_values"]:
-            issue_field = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
-            if issue_field:
-                issue_dict[issue_field["socrata_name"]] = field["value"]
+            issue_field_socrata = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
+            if issue_field_socrata:
+                if field.get("single_select_option"):
+                    issue_dict[issue_field_socrata["socrata_name"]] = field.get("single_select_option").get("name")
+                else:
+                    issue_dict[issue_field_socrata["socrata_name"]] = field["value"]
 
     return issue_dict
 
@@ -122,54 +124,6 @@ def convert_timestamp(date_string):
     if date_string:
         return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ").isoformat()
     return None
-
-
-# retrieves all issues from DTS Project Portfolio github project board
-def get_project_portfolio_issues(*, query, endpoint, admin_secret):
-    request_variables = {}
-    headers = {"Authorization": f"Bearer {admin_secret}"}
-    issues = []
-
-    end_cursor = ""
-    has_next_page = True
-    while has_next_page:
-        request_variables["cursor"] = end_cursor
-        payload = {"query": query, "variables": request_variables}
-        res = requests.post(endpoint, json=payload, headers=headers)
-        res.raise_for_status()
-        data = res.json()
-        try:
-            has_next_page = data["data"]["organization"]["projectV2"]["items"][
-                "pageInfo"
-            ]["hasNextPage"]
-            end_cursor = data["data"]["organization"]["projectV2"]["items"]["pageInfo"][
-                "endCursor"
-            ]
-            issues = (
-                issues + data["data"]["organization"]["projectV2"]["items"]["nodes"]
-            )
-        except KeyError:
-            raise ValueError(data)
-
-    return issues
-
-
-def make_project_issue_lookup(project_issues):
-    """Returns dictionary where keys are issue numbers and value is their status"""
-    project_issue_lookup = {}
-    for issue in project_issues:
-        # skip any items in project that do not have issue content
-        if not issue["content"]:
-            continue
-        try:
-            project_issue_lookup[issue["content"]["number"]] = issue.get(
-                "status", {}
-            ).get("name")
-        except AttributeError:
-            logging.info(
-                f'Error getting issue status, Issue {issue["content"]["number"]} status is: {issue.get("status")}'
-            )
-    return project_issue_lookup
 
 
 def chunks(lst, n):
