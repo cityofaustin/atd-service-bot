@@ -10,7 +10,6 @@ import argparse
 import requests
 import sodapy
 
-from queries import all_project_issues_ghp
 from utils.utils import remove_html_comments
 from config.config import ISSUE_FIELDS_MAPPING
 
@@ -106,14 +105,16 @@ def format_gh_issues(issue):
     # Get issue type
     issue_dict["type"] = issue.get("type").get("name") if issue.get("type") else None
 
-    issue_dict["estimate"] = None # estimate is issue_field 5181
+    issue_dict["estimate"] = None  # estimate is issue_field 5181
 
     if issue.get("issue_field_values"):
         for field in issue["issue_field_values"]:
             issue_field_socrata = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
             if issue_field_socrata:
                 if field.get("single_select_option"):
-                    issue_dict[issue_field_socrata["socrata_name"]] = field.get("single_select_option").get("name")
+                    issue_dict[issue_field_socrata["socrata_name"]] = field.get(
+                        "single_select_option"
+                    ).get("name")
                 else:
                     issue_dict[issue_field_socrata["socrata_name"]] = field["value"]
 
@@ -138,23 +139,12 @@ def main(args):
     issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN, request_limit)
     issues = [format_gh_issues(issue) for issue in issues_gh]
 
-    logging.info("Fetching Project Porfolio data...")
-    project_portfolio_issues = get_project_portfolio_issues(
-        query=all_project_issues_ghp,
-        endpoint=GITHUB_ENDPOINT,
-        admin_secret=GITHUB_ACCESS_TOKEN,
-    )
-
-    portfolio_issues_dict = make_project_issue_lookup(project_portfolio_issues)
-
+    # Will remove after I get confirmation that the DTS statuses are being updated
+    # since the DTS status should then be closed if the issue is closed
     logging.info("Processing statuses...")
     for issue in issues:
         if issue["state"] == "closed":
             issue["pipeline"] = "Closed"
-        else:
-            # if issue is not in the portfolio issues dictionary, the pipeline is None
-            # this is temporary until we get issue fields
-            issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
 
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,
@@ -180,8 +170,12 @@ def main(args):
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    parser = argparse.ArgumentParser(description="Take github issues from atd-data-tech repo and upload to Socrata")
+    parser = argparse.ArgumentParser(
+        description="Take github issues from atd-data-tech repo and upload to Socrata"
+    )
 
-    parser.add_argument("--limit", type=int, required=False, help="Issue query limit, optional")
+    parser.add_argument(
+        "--limit", type=int, required=False, help="Issue query limit, optional"
+    )
     args = parser.parse_args()
     main(args)
