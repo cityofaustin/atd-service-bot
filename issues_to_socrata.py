@@ -6,13 +6,12 @@ from datetime import datetime
 import logging
 import os
 import sys
-
+import argparse
 import requests
 import sodapy
 
-from queries import all_project_issues_ghp
 from utils.utils import remove_html_comments
-from config.config import issue_fields_mapping
+from config.config import ISSUE_FIELDS_MAPPING
 
 REPO = {"id": 140626918, "name": "cityofaustin/atd-data-tech"}
 SOCRATA_RESOURCE_ID = os.environ["SOCRATA_RESOURCE_ID"]
@@ -48,16 +47,17 @@ def has_child_issues(subissue_summary):
     return False
 
 
-def get_github_issues(github_access_token):
+def get_github_issues(github_access_token, limit):
     url = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
     headers = {
         "Authorization": f"Bearer {github_access_token}",
         "Accept": "application/vnd.github+json",
     }
-    params = {"state": "all", "per_page": 100}
+    per_page = limit if limit < 100 else 100
+    params = {"state": "all", "per_page": per_page}
 
     issues = []
-    while url:
+    while url and len(issues) < limit:
         logging.info(f"getting {url}")
         r = requests.get(url, headers=headers, params=params)
         issues.extend(r.json())
@@ -70,6 +70,7 @@ def format_gh_issues(issue):
     """Format github issue dictionary into fields expected in the ODP"""
     issue_dict = {}
 
+    # will be divisions in the future
     issue_dict["workgroups"] = extract_workgroups_from_labels(issue.get("labels"))
 
     issue_dict["labels"] = ", ".join(
@@ -79,8 +80,6 @@ def format_gh_issues(issue):
     issue_dict["assignee_ids"] = ", ".join(
         [str(user.get("id")) for user in issue.get("assignees")]
     )
-
-    issue_dict["is_epic"] = has_child_issues(issue.get("sub_issues_summary"))
 
     for attr in [
         "title",
@@ -104,15 +103,20 @@ def format_gh_issues(issue):
     issue_dict["body"] = remove_html_comments(issue_dict["body"])
 
     # Get issue type
-    issue_dict["type"] = issue.get("type").get("name") if issue.get("type") else ""
+    issue_dict["type"] = issue.get("type").get("name") if issue.get("type") else None
 
-    issue_dict["estimate"] = None # estimate is issue_field 5181
+    issue_dict["estimate"] = None  # estimate is issue_field 5181
 
     if issue.get("issue_field_values"):
         for field in issue["issue_field_values"]:
-            issue_field = issue_fields_mapping.get(field["issue_field_id"])
-            if issue_field:
-                issue_dict[issue_field["socrata_name"]] = field["value"]
+            issue_field_socrata = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
+            if issue_field_socrata:
+                if field.get("single_select_option"):
+                    issue_dict[issue_field_socrata["socrata_name"]] = field.get(
+                        "single_select_option"
+                    ).get("name")
+                else:
+                    issue_dict[issue_field_socrata["socrata_name"]] = field["value"]
 
     return issue_dict
 
@@ -123,82 +127,24 @@ def convert_timestamp(date_string):
     return None
 
 
-# retrieves all issues from DTS Project Portfolio github project board
-def get_project_portfolio_issues(*, query, endpoint, admin_secret):
-    request_variables = {}
-    headers = {"Authorization": f"Bearer {admin_secret}"}
-    issues = []
-
-    end_cursor = ""
-    has_next_page = True
-    while has_next_page:
-        request_variables["cursor"] = end_cursor
-        payload = {"query": query, "variables": request_variables}
-        res = requests.post(endpoint, json=payload, headers=headers)
-        res.raise_for_status()
-        data = res.json()
-        try:
-            has_next_page = data["data"]["organization"]["projectV2"]["items"][
-                "pageInfo"
-            ]["hasNextPage"]
-            end_cursor = data["data"]["organization"]["projectV2"]["items"]["pageInfo"][
-                "endCursor"
-            ]
-            issues = (
-                issues + data["data"]["organization"]["projectV2"]["items"]["nodes"]
-            )
-        except KeyError:
-            raise ValueError(data)
-
-    return issues
-
-
-def make_project_issue_lookup(project_issues):
-    """Returns dictionary where keys are issue numbers and value is their status"""
-    project_issue_lookup = {}
-    for issue in project_issues:
-        # skip any items in project that do not have issue content
-        if not issue["content"]:
-            continue
-        try:
-            project_issue_lookup[issue["content"]["number"]] = issue.get(
-                "status", {}
-            ).get("name")
-        except AttributeError:
-            logging.info(
-                f'Error getting issue status, Issue {issue["content"]["number"]} status is: {issue.get("status")}'
-            )
-    return project_issue_lookup
-
-
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i : i + n]
 
 
-def main():
+def main(args):
     logging.info("Fetching github issues...")
-    issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN)
+    request_limit = args.limit if args.limit else 999999
+    issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN, request_limit)
     issues = [format_gh_issues(issue) for issue in issues_gh]
 
-    logging.info("Fetching Project Porfolio data...")
-    project_portfolio_issues = get_project_portfolio_issues(
-        query=all_project_issues_ghp,
-        endpoint=GITHUB_ENDPOINT,
-        admin_secret=GITHUB_ACCESS_TOKEN,
-    )
-
-    portfolio_issues_dict = make_project_issue_lookup(project_portfolio_issues)
-
+    # Will remove after I get confirmation that the DTS statuses are being updated
+    # since the DTS status should then be closed if the issue is closed
     logging.info("Processing statuses...")
     for issue in issues:
         if issue["state"] == "closed":
             issue["pipeline"] = "Closed"
-        else:
-            # if issue is not in the portfolio issues dictionary, the pipeline is None
-            # this is temporary until we get issue fields
-            issue["pipeline"] = portfolio_issues_dict.get(issue["number"])
 
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,
@@ -224,4 +170,12 @@ def main():
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    main()
+    parser = argparse.ArgumentParser(
+        description="Take github issues from atd-data-tech repo and upload to Socrata"
+    )
+
+    parser.add_argument(
+        "--limit", type=int, required=False, help="Issue query limit, optional"
+    )
+    args = parser.parse_args()
+    main(args)
