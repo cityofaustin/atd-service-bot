@@ -11,9 +11,34 @@ GITHUB_ENDPOINT = "https://api.github.com/graphql"
 headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}", "Accept": "application/vnd.github+json"}
 
 
+def update_issue_type_to_task(issue_number, task_added):
+    endpoint = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues/{issue_number}"
+    res = requests.post(
+        endpoint, json={"type": "Task"}, headers=headers
+    )
+    logging.info(f"adding type to {issue_number}")
+    if res.status_code == 200:
+        task_added.append(issue_number)
+        return True
+    if res.status_code in (403, 429):
+        # Rate limited (primary or secondary)
+        logging.info(res.headers)
+        retry_after = res.headers.get("Retry-After")
+        limit_reset = res.headers.get("x-ratelimit-reset")
+        if retry_after:
+            logging.info(f"rate limited, wait {retry_after}")
+        if limit_reset:
+            logging.info(f"reset is at {limit_reset} ")
+        return False
+    # something else happened. log and return true so the script keeps going
+    logging.info(issue_number, res.status_code)
+    return True
+
+
 def get_all_github_issues():
     url = f'https://api.github.com/repos/cityofaustin/atd-data-tech/issues'
-    params = {"per_page": 100, "state": "all"}
+    # remove type none to get all the issues
+    params = {"per_page": 100, "state": "all", "type": "none"}
     issues = []
     while url:
         logging.info(f"getting {url}")
@@ -34,19 +59,21 @@ def main():
     task_added = []
 
     for issue in all_issues:
+        issue_number = issue.get('number')
+        if issue_number in [4189, 5692]:
+            continue
         if issue.get("pull_request"):
-            logging.info(f"issue {issue.get('number')} is pull request, skipping type")
+            logging.info(f"issue {issue_number} is pull request, skipping type")
             pull_request += 1
             continue
         issue_type = issue.get("type").get("name") if issue.get("type") else None
         if not issue_type:
             missing_type += 1
-            task_added.append(issue.get("number"))
+            update_success = update_issue_type_to_task(issue_number, task_added)
+            if not update_success:
+                break
         else:
             has_type += 1
-
-    with open("issues_assigned_task.json", "w", encoding="utf-8") as f:
-        json.dump(task_added, f, ensure_ascii=False, indent=4)
 
     logging.info(f"Issues alredy typed: {has_type}")
     logging.info(f"Pull requests: {pull_request}")
