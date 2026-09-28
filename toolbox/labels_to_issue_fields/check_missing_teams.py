@@ -1,3 +1,10 @@
+"""
+I was curious why my estimate for issues with more than one team was so off, so i used this
+to see how many issues in our repo are lacking a team entirely. 
+
+There were 777 issues
+
+"""
 import requests
 import logging
 import sys
