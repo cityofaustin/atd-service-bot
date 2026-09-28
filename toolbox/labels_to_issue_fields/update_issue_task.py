@@ -1,8 +1,13 @@
+"""
+Gets atd-data-tech issues that lack a type and set type Task
+
+https://github.com/cityofaustin/atd-data-tech/issues/28739
+
+"""
 import requests
 import logging
 import sys
 import os
-import json
 
 from secrets import GITHUB_ACCESS_TOKEN
 

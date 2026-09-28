@@ -1,11 +1,15 @@
+"""
+
+Updates the DTS Teams issue field for Epics in atd-data-tech based on the Team labels
+
+Github issue: https://github.com/cityofaustin/atd-data-tech/issues/28739
+
+"""
 import requests
 import logging
 import sys
 import os
-import json
-import csv
 
-from queries import issue_team_label_query
 from secrets import GITHUB_ACCESS_TOKEN
 
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
