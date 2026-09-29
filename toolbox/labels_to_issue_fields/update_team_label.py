@@ -11,12 +11,12 @@ import sys
 import os
 import json
 import csv
+import argparse
 
-from queries import issue_team_label_query
-from secrets import GITHUB_ACCESS_TOKEN
+# from secrets import GITHUB_ACCESS_TOKEN
 
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
-# GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
+GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
 headers = {
     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
     "Accept": "application/vnd.github+json",
@@ -33,6 +33,18 @@ teams = [
     "Team: Dev",
     "Team: Product",
 ]
+
+label_to_issue_field_mapping = {
+    "Team: Geo": "Geo",
+    "Team: DTS Operations": "Operations",
+    "Team: Tech Services": "Tech Services",
+    "Team: Data Science": "Data Science",
+    "Team: Maximo": "Maximo",
+    "Team: AMANDA": "ECM",
+    "Team: Apps" : "Apps",
+    "Team: Dev": "Dev",
+    "Team: Product": "Product",
+}
 
 
 def get_all_task_issues_of_team(team_label):
@@ -84,18 +96,16 @@ def update_issue_field_team(issue_number):
         endpoint, json={"issue_field_values": issue_field_values}, headers=headers
     )
     res.raise_for_status()
-    # logging.info(res)
 
 
-def main():
+def main(args):
     # this should be a parameter
-    team_name = "Team: DTS Operations"
+    logging.info(args.team)
+    team_name = args.team
+    if team_name not in teams:
+        raise ValueError(f"Team {team_name} not official team name.")
     all_issues = get_all_task_issues_of_team(team_name)
     logging.info(f"Total task issues of {team_name}: {len(all_issues)}")
-    # with open("all_task_issues.json", "w", encoding="utf-8") as f:
-    #     json.dump(all_issues, f, ensure_ascii=False, indent=4)
-    # with open('prodlabelissues.json', 'r') as file:
-    #     all_issues = json.load(file)
 
     extra_teams = []
 
@@ -131,14 +141,11 @@ def main():
                 "url": issue["html_url"]
             })
 
-            # extra_teams.append(issue)
 
     logging.info(f"total issues with duplicate teams {len(extra_teams)}")
-    with open("oper_extras.json", "w", encoding="utf-8") as f:
-        json.dump(extra_teams, f, ensure_ascii=False, indent=4)
 
     keys = extra_teams[0].keys()
-    with open('clean_up_oper.csv', 'w', newline='') as output_file:
+    with open(f"clean_up_{label_to_issue_field_mapping[team_name]}.csv", 'w', newline='') as output_file:
         dict_writer = csv.DictWriter(output_file, keys)
         dict_writer.writeheader()
         dict_writer.writerows(extra_teams)
@@ -146,5 +153,8 @@ def main():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Batch-update GitHub team issue field.")
+    parser.add_argument("--team", required=True, help="Team we are updating")
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    main()
+    args = parser.parse_args()
+    main(args)
