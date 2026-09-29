@@ -4,6 +4,7 @@ Gets atd-data-tech issues that lack a type and set type Task
 https://github.com/cityofaustin/atd-data-tech/issues/28739
 
 """
+
 import requests
 import logging
 import sys
@@ -13,14 +14,17 @@ from secrets import GITHUB_ACCESS_TOKEN
 
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
 # GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
-headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}", "Accept": "application/vnd.github+json"}
+headers = {
+    "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
+    "Accept": "application/vnd.github+json",
+}
 
 
 def update_issue_type_to_task(issue_number, task_added):
-    endpoint = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues/{issue_number}"
-    res = requests.post(
-        endpoint, json={"type": "Task"}, headers=headers
+    endpoint = (
+        f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues/{issue_number}"
     )
+    res = requests.post(endpoint, json={"type": "Task"}, headers=headers)
     logging.info(f"adding type to {issue_number}")
     if res.status_code == 200:
         task_added.append(issue_number)
@@ -41,7 +45,7 @@ def update_issue_type_to_task(issue_number, task_added):
 
 
 def get_all_github_issues():
-    url = f'https://api.github.com/repos/cityofaustin/atd-data-tech/issues'
+    url = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
     # remove type none to get all the issues
     params = {"per_page": 100, "state": "all", "type": "none"}
     issues = []
@@ -64,7 +68,7 @@ def main():
     task_added = []
 
     for issue in all_issues:
-        issue_number = issue.get('number')
+        issue_number = issue.get("number")
         if issue_number in [4189, 5692]:
             continue
         if issue.get("pull_request"):
@@ -83,8 +87,6 @@ def main():
     logging.info(f"Issues alredy typed: {has_type}")
     logging.info(f"Pull requests: {pull_request}")
     logging.info(f"Issues without type, now with type Task: {missing_type}")
-
-
 
 
 if __name__ == "__main__":

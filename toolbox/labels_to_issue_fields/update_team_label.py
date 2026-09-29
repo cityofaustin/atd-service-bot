@@ -49,6 +49,10 @@ def get_all_task_issues_of_team(team_label):
 
 
 def has_team_github_field(issue):
+    """
+    Checks if issue has issue_field_values defined, loops through the fields defined to see if the DTS Team field is set
+    returns True if there is already a team set
+    """
     if issue.get("issue_field_values"):
         field_values = issue.get("issue_field_values")
         for field in field_values:
@@ -59,6 +63,10 @@ def has_team_github_field(issue):
 
 
 def check_team_labels(issue, other_teams):
+    """
+    Checks if issue has one of the other teams in their labels. Task issues should only have one team associated,
+    return False if there is more than one team on an issue
+    """
     all_labels = issue.get("labels")
     for label in all_labels:
         if label.get("name") in other_teams:
@@ -93,7 +101,7 @@ def main():
 
     for issue in all_issues:
         issue_number = issue.get("number")
-        # if we already have the team issue field, just skip it
+        # if we already have the team issue field defined, just skip it
         if has_team_github_field(issue):
             continue
         other_teams = [name for name in teams if name != team_name]
