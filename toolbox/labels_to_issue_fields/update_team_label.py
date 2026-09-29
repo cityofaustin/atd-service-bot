@@ -87,11 +87,10 @@ def check_team_labels(issue, other_teams):
     return True
 
 
-def update_issue_field_team(issue_number):
+def update_issue_field_team(issue_number, team_name):
     endpoint = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues/{issue_number}/issue-field-values"
     issue_field_values = []
-    # TODO: we can use the text/name, update
-    issue_field_values.append({"field_id": 6520, "value": 8057})
+    issue_field_values.append({"field_id": 6520, "value": team_name})
     res = requests.post(
         endpoint, json={"issue_field_values": issue_field_values}, headers=headers
     )
@@ -100,10 +99,12 @@ def update_issue_field_team(issue_number):
 
 def main(args):
     # this should be a parameter
-    logging.info(args.team)
-    team_name = args.team
+    # logging.info(args.team)
+    # team_name = args.team
+    team_name = "Team: DTS Operations"
     if team_name not in teams:
         raise ValueError(f"Team {team_name} not official team name.")
+    issue_field_team_name = label_to_issue_field_mapping[team_name]
     all_issues = get_all_task_issues_of_team(team_name)
     logging.info(f"Total task issues of {team_name}: {len(all_issues)}")
 
@@ -118,6 +119,7 @@ def main(args):
         one_team = check_team_labels(issue, other_teams)
         if one_team:
             # assign the team here
+            # update_issue_field_team(issue_number, issue_field_team_name)
             # logging.info(issue_number)
             continue
         else:
@@ -154,7 +156,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Batch-update GitHub team issue field.")
-    parser.add_argument("--team", required=True, help="Team we are updating")
+    # parser.add_argument("--team", required=True, help="Team we are updating")
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     args = parser.parse_args()
     main(args)
