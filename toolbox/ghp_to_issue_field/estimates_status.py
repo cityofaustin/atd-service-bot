@@ -2,12 +2,29 @@ import requests
 import logging
 import sys
 import os
+import argparse
 
 from queries import issue_estimates_status_query
 
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
 GITHUB_ACCESS_TOKEN = os.environ["GITHUB_ACCESS_TOKEN"]
-headers = {"Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}"}
+headers = {
+    "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
+    "GraphQL-Features": "issue_fields",
+}
+
+project_boards = {
+    "Product": 23,
+    "Amanda": 22,  # ECM
+    "Tech Services": 21,
+    "Dev": 25,
+    "Operations": 20,
+    "Apps": 16,
+    "Data Science": 19,
+    "Geo": 6,
+    "Maximo": 18,
+    "Portfolio": 27,
+}
 
 
 def get_issues_from_ghp_board(query, endpoint, board_id):
@@ -46,46 +63,29 @@ def update_issue_fields(issue_number, estimate, status):
     logging.info(res)
 
 
-def main():
+def main(args):
+    # board_number = args.board
+    board_number = 25
     # gets issues with estimates and status from GHP board
     ghp_board_issues = get_issues_from_ghp_board(
-        issue_estimates_status_query, GITHUB_ENDPOINT, 23
+        issue_estimates_status_query, GITHUB_ENDPOINT, board_number
     )
-    issues_cleaned = []
+    # TODO: i need to check if the estimate or status is already defined, and if so skip it.
     for issue in ghp_board_issues:
         issue_number = issue["content"]["number"]
-        issue_type = (
-            issue.get("content").get("issueType").get("name")
-            if issue["content"]["issueType"]
-            else None
-        )
         issue_estimate = (
             issue.get("estimate").get("number") if issue.get("estimate") else None
         )
         issue_status = issue.get("status").get("name") if issue.get("status") else None
-        issues_cleaned.append(
-            {
-                "id": issue["id"],
-                "number": issue_number,
-                "estimate": issue_estimate,
-                "status": issue_status,
-                "type": issue_type,
-            }
-        )
-
-    to_update = []
-    for issue in issues_cleaned:
-        if issue["type"] == "[Product Team] Task":
-            if issue["estimate"] or issue["status"]:
-                to_update.append(issue)
-
-    for i in to_update:
-        # for the most part, the statuses in the Status Issue Field matches the statuses in the github project
-        # except for Closed/Complete. GHP board status Closed maps to Complete in the Issue Fields
-        issue_field_status = i["status"] if i["status"] != "Closed" else "Complete"
-        update_issue_fields(i["number"], i["estimate"], issue_field_status)
+        if issue_estimate or issue_status:
+            update_issue_fields(issue_number, issue_estimate, issue_status)
 
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    main()
+    parser = argparse.ArgumentParser(
+        description="Check estimates and statuses from project board and update fields"
+    )
+    # parser.add_argument("--board", required=True, help="name of team board")
+    args = parser.parse_args()
+    main(args)

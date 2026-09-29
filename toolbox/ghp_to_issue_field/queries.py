@@ -17,7 +17,31 @@ query ProjectIssues($boardID: Int!, $cursor: String) {
               issueType {
 								id
 								name
-							}
+              }
+          issueFieldValues(first: 5) {
+                nodes {
+                  __typename
+                  ... on IssueFieldSingleSelectValue {
+                    name
+                    field {
+                      ... on IssueFieldSingleSelect {
+                        name
+                        id
+                        fullDatabaseId
+                      }
+                    }
+                  }
+                  ... on IssueFieldNumberValue {
+                    field {
+                      ... on IssueFieldNumber {
+                        name
+                        id
+                        fullDatabaseId
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
           status: fieldValueByName(name: "Status") {
