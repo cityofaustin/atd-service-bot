@@ -50,6 +50,7 @@ def get_issues_from_ghp_board(query, endpoint, board_id):
 
     return issues
 
+
 def check_existing_issue_fields(issue):
     existing_estimate = None
     existing_status = None
@@ -67,8 +68,6 @@ def check_existing_issue_fields(issue):
     return existing_estimate, existing_status
 
 
-
-
 def update_issue_fields(issue_number, estimate, status):
     endpoint = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues/{issue_number}/issue-field-values"
     issue_field_values = []
@@ -77,11 +76,11 @@ def update_issue_fields(issue_number, estimate, status):
     if status:
         issue_field_values.append({"field_id": 10226, "value": status})
     logging.info(f"{issue_number} is {issue_field_values}")
-    # res = requests.post(
-    #     endpoint, json={"issue_field_values": issue_field_values}, headers=headers
-    # )
-    # res.raise_for_status()
-    # logging.info(res)
+    res = requests.post(
+        endpoint, json={"issue_field_values": issue_field_values}, headers=headers
+    )
+    res.raise_for_status()
+    logging.info(res)
 
 
 def main(args):
@@ -94,12 +93,22 @@ def main(args):
     # TODO: i need to check if the estimate or status is already defined, and if so skip it.
     for issue in ghp_board_issues:
         issue_number = issue["content"]["number"]
-        existing_estimate, existing_status = check_existing_issue_fields(issue.get("content"))
+        existing_estimate, existing_status = check_existing_issue_fields(
+            issue.get("content")
+        )
         logging.info(f"{issue_number} - {existing_estimate} {existing_status}")
-        issue_estimate = None if existing_estimate else (
-            issue.get("estimate").get("number") if issue.get("estimate") else None
-        ) 
-        issue_status = None if existing_status else issue.get("status").get("name") if issue.get("status") else None
+        issue_estimate = (
+            None
+            if existing_estimate
+            else (
+                issue.get("estimate").get("number") if issue.get("estimate") else None
+            )
+        )
+        issue_status = (
+            None
+            if existing_status
+            else issue.get("status").get("name") if issue.get("status") else None
+        )
         if issue_estimate or issue_status:
             update_issue_fields(issue_number, issue_estimate, issue_status)
 
