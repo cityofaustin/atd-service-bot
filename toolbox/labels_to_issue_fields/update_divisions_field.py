@@ -1,6 +1,9 @@
 """
+Updates the Division issue field for Epics and Tasks in atd-data-tech based on the Workgroup labels
 
-Updates the DTS Teams issue field for Epics in atd-data-tech based on the Team labels
+python update_issue_task.py --type "epic"
+or 
+python update_issue_task.py --type "task"
 
 Github issue: https://github.com/cityofaustin/atd-data-tech/issues/28739
 

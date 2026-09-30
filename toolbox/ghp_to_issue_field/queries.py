@@ -18,7 +18,7 @@ query ProjectIssues($boardID: Int!, $cursor: String) {
 								id
 								name
               }
-          issueFieldValues(first: 5) {
+              issueFieldValues(first: 5) {
                 nodes {
                   __typename
                   ... on IssueFieldSingleSelectValue {
@@ -32,6 +32,7 @@ query ProjectIssues($boardID: Int!, $cursor: String) {
                     }
                   }
                   ... on IssueFieldNumberValue {
+                    value
                     field {
                       ... on IssueFieldNumber {
                         name
@@ -56,32 +57,6 @@ query ProjectIssues($boardID: Int!, $cursor: String) {
 						number
 					}
 				}
-        }
-      }
-    }
-  }
-}
-"""
-
-issue_team_label_query = """
-query($searchQuery: String!, $first: Int!, $cursor:String) {
-  search(query: $searchQuery, type: ISSUE, first: $first, after: $cursor) {
-    issueCount
-    pageInfo {
-			hasNextPage
-			endCursor
-		}
-    nodes {
-      ... on Issue {
-        number
-				id
-        title
-        url
-        state
-        labels(first: 10) {
-          nodes {
-            name
-          }
         }
       }
     }
