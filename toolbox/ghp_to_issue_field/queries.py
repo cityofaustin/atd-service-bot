@@ -51,7 +51,7 @@ query ProjectIssues($boardID: Int!, $cursor: String) {
               description
             }
           }
-				 estimate: fieldValueByName(name: "Estimate") {
+				 estimate: fieldValueByName(name: "Estimate - 1, 2, 3, 5, 8, or 13") {
 					... on ProjectV2ItemFieldNumberValue {
 						id
 						number
