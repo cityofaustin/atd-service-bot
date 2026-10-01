@@ -39,6 +39,9 @@ KNACK_APP_ID = os.getenv("KNACK_APP_ID")
 GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 REPO = "atd-data-tech"
 
+CAPTURE_DIR = Path("captures")
+CAPTURE_SUFFIX = "_knack_payload.json"
+
 GITHUB_URL = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
 GITHUB_HEADERS = {
     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
@@ -229,10 +232,21 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         description="Create GitHub issues from Knack DTS portal service requests."
     )
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--capture",
         action="store_true",
         help="Write records queried from Knack to ./captures/<timestamp>_knack_payload.json, print them, then exit.",
+    )
+    mode.add_argument(
+        "--use-capture",
+        action="store_true",
+        help="Process the latest ./captures/*_knack_payload.json instead of querying Knack records.",
+    )
+    parser.add_argument(
+        "--no-send-to-github",
+        action="store_true",
+        help="Print prepared issues instead of creating GitHub issues or updating Knack.",
     )
     return parser.parse_args(argv)
 
@@ -240,22 +254,46 @@ def parse_args(argv=None):
 def write_knack_capture(issues):
     payload = [issue.data for issue in issues]
     text = json.dumps(payload, indent=2) + "\n"
-    capture_dir = Path("captures")
-    capture_dir.mkdir(parents=True, exist_ok=True)
-    path = capture_dir / f"{datetime.now().strftime('%Y%m%dT%H%M%S')}_knack_payload.json"
+    CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
+    path = CAPTURE_DIR / f"{datetime.now().strftime('%Y%m%dT%H%M%S')}{CAPTURE_SUFFIX}"
     path.write_text(text)
     print(text, end="")
     print(f"Wrote {path}")
     return path
 
 
-def main(capture=False):
+def latest_capture_path():
+    paths = sorted(CAPTURE_DIR.glob(f"*{CAPTURE_SUFFIX}"))
+    if not paths:
+        raise SystemExit(f"No Knack captures found in {CAPTURE_DIR}/")
+    return paths[-1]
+
+
+def records_from_capture(app, view, payload):
+    """Build knackpy records from a saved payload, skipping the view query."""
+    container = app._find_container(view)
+    container_key = container.obj or container.view
+    app.data[container_key] = payload
+    return app._records(container_key)
+
+
+def load_latest_capture(app, view):
+    path = latest_capture_path()
+    logging.info(f"Using capture {path}")
+    payload = json.loads(path.read_text())
+    return records_from_capture(app, view, payload)
+
+
+def main(capture=False, use_capture=False, no_send_to_github=False):
     if not capture:
         logging.info("Starting...")
     view = KNACK_APP["api_view"]["view"]
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
 
-    issues = app.get(view)
+    if use_capture:
+        issues = load_latest_capture(app, view)
+    else:
+        issues = app.get(view)
 
     if capture:
         write_knack_capture(issues)
@@ -276,6 +314,11 @@ def main(capture=False):
             # be sent to the transportation.data inbox, to be handled by the service desk
             github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
+
+    if no_send_to_github:
+        print(json.dumps(prepared, indent=2))
+        logging.info(f"{len(prepared)} issues prepared; not sent to GitHub.")
+        return 0
 
     token = get_token(
         KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
@@ -322,4 +365,8 @@ if __name__ == "__main__":
     # airflow needs this to see logs from the DockerOperator
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     args = parse_args()
-    main(capture=args.capture)
+    main(
+        capture=args.capture,
+        use_capture=args.use_capture,
+        no_send_to_github=args.no_send_to_github,
+    )
