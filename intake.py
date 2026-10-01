@@ -14,9 +14,14 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 - repo names
 - labels
 """
+import argparse
+import json
 import logging
 import os
 import sys
+from datetime import datetime
+from pathlib import Path
+
 import knackpy
 import requests
 
@@ -220,12 +225,41 @@ def form_submit(token, app_id, scene, view, payload):
     return res
 
 
-def main():
-    logging.info("Starting...")
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Create GitHub issues from Knack DTS portal service requests."
+    )
+    parser.add_argument(
+        "--capture",
+        action="store_true",
+        help="Write records queried from Knack to ./captures/<timestamp>_knack_payload.json, print them, then exit.",
+    )
+    return parser.parse_args(argv)
+
+
+def write_knack_capture(issues):
+    payload = [issue.data for issue in issues]
+    text = json.dumps(payload, indent=2) + "\n"
+    capture_dir = Path("captures")
+    capture_dir.mkdir(parents=True, exist_ok=True)
+    path = capture_dir / f"{datetime.now().strftime('%Y%m%dT%H%M%S')}_knack_payload.json"
+    path.write_text(text)
+    print(text, end="")
+    print(f"Wrote {path}")
+    return path
+
+
+def main(capture=False):
+    if not capture:
+        logging.info("Starting...")
     view = KNACK_APP["api_view"]["view"]
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
 
     issues = app.get(view)
+
+    if capture:
+        write_knack_capture(issues)
+        return 0
 
     if not issues:
         logging.info("No issues to process.")
@@ -287,4 +321,5 @@ def main():
 if __name__ == "__main__":
     # airflow needs this to see logs from the DockerOperator
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    main()
+    args = parse_args()
+    main(capture=args.capture)
