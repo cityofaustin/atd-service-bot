@@ -11,9 +11,17 @@ query ProjectIssues($boardID: Int!, $cursor: String) {
         nodes {
           id
           content {
+            ... on PullRequest {
+              title
+              isPullRequest: title
+              number
+              merged
+              closed
+            }
             ... on Issue {
               title
               number
+              closed
               issueType {
 								id
 								name

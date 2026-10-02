@@ -1,3 +1,7 @@
+'''
+schema dict of the issueFields we have configured on atd-data-tech repo
+used as reference
+'''
 issue_fields = {
 	"data": {
 		"repository": {
