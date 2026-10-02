@@ -1,5 +1,5 @@
 """
-Updates the DTS Teams issue field for Epics in atd-data-tech based on the Team labels
+Updates the DTS Team issue field for Tasks in atd-data-tech based on the Team labels
 
 Github issue: https://github.com/cityofaustin/atd-data-tech/issues/28739
 
