@@ -43,11 +43,83 @@ CAPTURE_DIR = Path("captures")
 CAPTURE_SUFFIX = "_knack_payload.json"
 
 GITHUB_URL = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
+GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 GITHUB_HEADERS = {
     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
     "Accept": "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
 }
+
+ISSUE_FIELDS_QUERY = """
+{
+  repository(owner: "cityofaustin", name: "atd-data-tech") {
+    issueFields(first: 25) {
+      nodes {
+        __typename
+        ... on IssueFieldNumber {
+          name
+          description
+          dataType
+          id
+          fullDatabaseId
+        }
+        ... on IssueFieldMultiSelect {
+          description
+          name
+          id
+          fullDatabaseId
+          options {
+            id
+            name
+            databaseId
+            fullDatabaseId
+            description
+          }
+        }
+        ... on IssueFieldDate {
+          description
+          id
+          name
+          fullDatabaseId
+        }
+        ... on IssueFieldSingleSelect {
+          id
+          description
+          name
+          fullDatabaseId
+          options {
+            id
+            name
+            databaseId
+            fullDatabaseId
+          }
+        }
+        ... on IssueFieldText {
+          name
+          id
+          description
+          fullDatabaseId
+        }
+      }
+    }
+  }
+}
+"""
+
+
+def fetch_issue_fields():
+    """Load repository issue fields and their dropdown options from GitHub."""
+    res = requests.post(
+        GITHUB_GRAPHQL_URL,
+        headers=GITHUB_HEADERS,
+        json={"query": ISSUE_FIELDS_QUERY},
+    )
+    res.raise_for_status()
+    payload = res.json()
+    if payload.get("errors"):
+        raise RuntimeError(json.dumps(payload["errors"], indent=2))
+    print(json.dumps(payload, indent=2))
+    return payload
 
 
 def blockquote(text):
@@ -285,6 +357,8 @@ def load_latest_capture(app, view):
 
 
 def main(capture=False, use_capture=False, no_send_to_github=False):
+    issue_fields = fetch_issue_fields()
+
     if not capture:
         logging.info("Starting...")
     view = KNACK_APP["api_view"]["view"]
