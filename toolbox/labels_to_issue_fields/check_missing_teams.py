@@ -49,8 +49,15 @@ def check_missing_team(issue):
     all_labels = issue.get("labels")
     for label in all_labels:
         if label.get("name") in teams:
-            # logging.info(f"duplicate {issue.get('number')}: {label['name']}")
             return False
+    return True
+
+def check_missing_team_issue_field(issue):
+    if issue.get("issue_field_values"):
+        field_values = issue.get("issue_field_values")
+        for field in field_values:
+            if field.get("issue_field_id") == 6520:
+                return False
     return True
 
 
@@ -59,15 +66,23 @@ def main():
     logging.info(f"Total task issues: {len(all_issues)}")
 
     missing_teams = []
+    missing_issue_field = []
+
+    check = []
 
     for issue in all_issues:
+        issue_number = issue.get("number")
         if check_missing_team(issue):
-            issue_number = issue.get("number")
             missing_teams.append(issue_number)
+        if check_missing_team_issue_field(issue):
+            missing_issue_field.append(issue_number)
 
-    logging.info(f"total task issues missing team {len(missing_teams)}")
-    with open("missing_teams.json", "w", encoding="utf-8") as f:
-        json.dump(missing_teams, f, ensure_ascii=False, indent=4)
+    for number in missing_issue_field:
+        if number not in missing_teams:
+            check.append(number)
+
+    logging.info(check)
+
 
 
 if __name__ == "__main__":
