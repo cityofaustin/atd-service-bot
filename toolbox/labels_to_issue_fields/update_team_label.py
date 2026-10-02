@@ -69,7 +69,7 @@ def has_team_github_field(issue):
         field_values = issue.get("issue_field_values")
         for field in field_values:
             if field.get("issue_field_id") == 6520:
-                logging.info(f"{issue['number']} is already team {field.get('single_select_option').get('name')}")
+                # logging.info(f"{issue['number']} is already team {field.get('single_select_option').get('name')}")
                 return True
     return False
 
@@ -94,14 +94,15 @@ def update_issue_field_team(issue_number, team_name):
     res = requests.post(
         endpoint, json={"issue_field_values": issue_field_values}, headers=headers
     )
+    if res.status_code != 200:
+        logging.info(res.headers)
     res.raise_for_status()
 
 
 def main(args):
-    # this should be a parameter
     # logging.info(args.team)
     # team_name = args.team
-    team_name = "Team: DTS Operations"
+    team_name = "Team: Geo"
     if team_name not in teams:
         raise ValueError(f"Team {team_name} not official team name.")
     issue_field_team_name = label_to_issue_field_mapping[team_name]
@@ -109,18 +110,22 @@ def main(args):
     logging.info(f"Total task issues of {team_name}: {len(all_issues)}")
 
     extra_teams = []
+    num_issues = len(all_issues)
+    updated = 0
 
     for issue in all_issues:
         issue_number = issue.get("number")
         # if we already have the team issue field defined, just skip it
         if has_team_github_field(issue):
+            updated += 1
             continue
         other_teams = [name for name in teams if name != team_name]
         one_team = check_team_labels(issue, other_teams)
         if one_team:
             # assign the team here
-            # update_issue_field_team(issue_number, issue_field_team_name)
-            # logging.info(issue_number)
+            update_issue_field_team(issue_number, issue_field_team_name)
+            updated += 1
+            logging.info(f"{issue_number}, {updated} of {num_issues}")
             continue
         else:
             if len(issue["assignees"]) > 1:
@@ -145,6 +150,9 @@ def main(args):
 
 
     logging.info(f"total issues with duplicate teams {len(extra_teams)}")
+
+    with open("check.json", "w", encoding="utf-8") as f:
+        json.dump(all_issues, f, ensure_ascii=False, indent=4)
 
     keys = extra_teams[0].keys()
     with open(f"clean_up_{label_to_issue_field_mapping[team_name]}.csv", 'w', newline='') as output_file:
