@@ -162,7 +162,7 @@ def blockquote(text):
     return "\n".join(f"> {line}" if line else ">" for line in lines)
 
 
-def map_issue(issue, fields):
+def map_issue(issue, fields, issue_fields):
     github_issue = {
         "description": "",
         "labels": [],
@@ -262,6 +262,12 @@ def map_issue(issue, fields):
                 )
             github_issue[field["github"]][field["field_name"]] = option_name
 
+        elif field["method"] == "map_issue_field_by_description":
+            option_name = option_name_for_description(
+                issue_fields, field["field_name"], knack_field_value
+            )
+            github_issue[field["github"]][field["field_name"]] = option_name
+
         elif field["method"] == "map_append":
             val_mapped = field["map"].get(knack_field_value)
 
@@ -314,8 +320,7 @@ def create_github_issue(github_payload):
     return res.json()
 
 
-def single_select_field_assignment(issue_fields, field_name, option_name):
-    """Resolve a single-select issue field to the REST field id and option name."""
+def find_issue_field(issue_fields, field_name):
     field = next(
         (
             node
@@ -326,16 +331,44 @@ def single_select_field_assignment(issue_fields, field_name, option_name):
     )
     if not field:
         raise RuntimeError(f"GitHub issue field {field_name!r} was not found")
+    return field
 
+
+def option_name_for_description(issue_fields, field_name, description):
+    """Return the option name whose description matches a Knack choice."""
+    field = find_issue_field(issue_fields, field_name)
+    matches = [
+        option.get("name")
+        for option in (field.get("options") or [])
+        if option and option.get("description") == description
+    ]
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"GitHub issue field {field_name!r} has no single option "
+            f"with description {description!r}"
+        )
+    return matches[0]
+
+
+def issue_field_assignment(issue_fields, field_name, option_name):
+    """Resolve an issue field to the REST field id and option value."""
+    field = find_issue_field(issue_fields, field_name)
     option_names = {
         option.get("name") for option in (field.get("options") or []) if option
     }
-    if option_name not in option_names:
+    names = option_name if isinstance(option_name, list) else [option_name]
+    missing = [name for name in names if name not in option_names]
+    if missing:
         raise RuntimeError(
-            f"GitHub issue field {field_name!r} has no option {option_name!r}"
+            f"GitHub issue field {field_name!r} has no option {missing[0]!r}"
         )
 
-    return {"field_id": int(field["fullDatabaseId"]), "value": option_name}
+    if field.get("__typename") == "IssueFieldMultiSelect":
+        value = names
+    else:
+        value = option_name
+
+    return {"field_id": int(field["fullDatabaseId"]), "value": value}
 
 
 def add_issue_field_values(issue_number, field_values):
@@ -473,7 +506,7 @@ def main(
 
     for issue in issues:
         # turn knack issues into github issues
-        github_issue = map_issue(issue, FIELDS)
+        github_issue = map_issue(issue, FIELDS, issue_fields)
         github_issue = format_title(github_issue)
         if not github_issue["assignee"]:
             # fallback when field_1122 is empty; on issue creation an email will
@@ -507,7 +540,7 @@ def main(
         result = create_github_issue(github_payload)
 
         field_values = [
-            single_select_field_assignment(issue_fields, field_name, option_name)
+            issue_field_assignment(issue_fields, field_name, option_name)
             for field_name, option_name in issue.get("issue_fields", {}).items()
         ]
         if field_values:
