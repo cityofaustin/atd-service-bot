@@ -120,8 +120,32 @@ def fetch_issue_fields():
     payload = res.json()
     if payload.get("errors"):
         raise RuntimeError(json.dumps(payload["errors"], indent=2))
-    print(json.dumps(payload, indent=2))
     return payload
+
+
+def print_issue_field_options(payload):
+    """Print each repository issue field and its dropdown options."""
+    nodes = (
+        payload.get("data", {})
+        .get("repository", {})
+        .get("issueFields", {})
+        .get("nodes", [])
+    )
+    for field in nodes:
+        if not field:
+            continue
+        name = field.get("name") or "(unnamed)"
+        typename = field.get("__typename", "unknown")
+        print(f"{name} [{typename}]")
+        options = field.get("options") or []
+        if not options:
+            print("  (no options)")
+            continue
+        for option in options:
+            option_name = option.get("name")
+            option_id = option.get("id")
+            print(f"  - {option_name} ({option_id})")
+        print()
 
 
 def blockquote(text):
@@ -322,6 +346,11 @@ def parse_args(argv=None):
         action="store_true",
         help="Print prepared issues instead of creating GitHub issues or updating Knack.",
     )
+    parser.add_argument(
+        "--inspect-field-options",
+        action="store_true",
+        help="Print each GitHub issue field and its options, then exit.",
+    )
     return parser.parse_args(argv)
 
 
@@ -358,8 +387,17 @@ def load_latest_capture(app, view):
     return records_from_capture(app, view, payload)
 
 
-def main(capture=False, use_capture=False, no_send_to_github=False):
+def main(
+    capture=False,
+    use_capture=False,
+    no_send_to_github=False,
+    inspect_field_options=False,
+):
     issue_fields = fetch_issue_fields()
+
+    if inspect_field_options:
+        print_issue_field_options(issue_fields)
+        return 0
 
     if not capture:
         logging.info("Starting...")
@@ -446,4 +484,5 @@ if __name__ == "__main__":
         capture=args.capture,
         use_capture=args.use_capture,
         no_send_to_github=args.no_send_to_github,
+        inspect_field_options=args.inspect_field_options,
     )
