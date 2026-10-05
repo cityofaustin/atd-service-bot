@@ -123,15 +123,19 @@ def fetch_issue_fields():
     return payload
 
 
-def print_issue_field_options(payload):
-    """Print each repository issue field and its dropdown options."""
+def issue_field_nodes(payload):
     nodes = (
         payload.get("data", {})
         .get("repository", {})
         .get("issueFields", {})
         .get("nodes", [])
     )
-    for field in nodes:
+    return nodes or []
+
+
+def print_issue_field_options(payload):
+    """Print each repository issue field and its dropdown options."""
+    for field in issue_field_nodes(payload):
         if not field:
             continue
         name = field.get("name") or "(unnamed)"
@@ -164,6 +168,7 @@ def map_issue(issue, fields):
         "github_url": None,
         "knack_id": None,
         "repo": REPO,  # hardcoded since we switched to a monorepo
+        "issue_fields": {},
     }
 
     for field in fields:
@@ -246,6 +251,14 @@ def map_issue(issue, fields):
 
             github_issue[field["github"]] = new_value
 
+        elif field["method"] == "map_issue_field":
+            option_name = field["map"].get(knack_field_value)
+            if not option_name:
+                raise RuntimeError(
+                    f"No {field['field_name']} option for Knack value {knack_field_value!r}"
+                )
+            github_issue[field["github"]][field["field_name"]] = option_name
+
         elif field["method"] == "map_append":
             val_mapped = field["map"].get(knack_field_value)
 
@@ -294,6 +307,42 @@ def format_title(issue):
 def create_github_issue(github_payload):
     logging.info("Creating issue")
     res = requests.post(GITHUB_URL, headers=GITHUB_HEADERS, json=github_payload)
+    res.raise_for_status()
+    return res.json()
+
+
+def single_select_field_assignment(issue_fields, field_name, option_name):
+    """Resolve a single-select issue field to the REST field id and option name."""
+    field = next(
+        (
+            node
+            for node in issue_field_nodes(issue_fields)
+            if node and node.get("name") == field_name
+        ),
+        None,
+    )
+    if not field:
+        raise RuntimeError(f"GitHub issue field {field_name!r} was not found")
+
+    option_names = {
+        option.get("name") for option in (field.get("options") or []) if option
+    }
+    if option_name not in option_names:
+        raise RuntimeError(
+            f"GitHub issue field {field_name!r} has no option {option_name!r}"
+        )
+
+    return {"field_id": int(field["fullDatabaseId"]), "value": option_name}
+
+
+def add_issue_field_values(issue_number, field_values):
+    """Add organization issue field values without replacing fields already set."""
+    headers = {**GITHUB_HEADERS, "X-GitHub-Api-Version": "2026-03-10"}
+    res = requests.post(
+        f"{GITHUB_URL}/{issue_number}/issue-field-values",
+        headers=headers,
+        json={"issue_field_values": field_values},
+    )
     res.raise_for_status()
     return res.json()
 
@@ -453,6 +502,13 @@ def main(
             "type": ISSUE_TYPE,
         }
         result = create_github_issue(github_payload)
+
+        field_values = [
+            single_select_field_assignment(issue_fields, field_name, option_name)
+            for field_name, option_name in issue.get("issue_fields", {}).items()
+        ]
+        if field_values:
+            add_issue_field_values(result["number"], field_values)
 
         knack_payload = {
             "id": issue["knack_id"],

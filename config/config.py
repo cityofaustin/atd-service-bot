@@ -201,19 +201,19 @@ FIELDS = [
     }, # Workgroup
     {
         "knack": "field_1099",  # DTS Service Group
-        "github": "labels",
-        "method": "map_append",
+        "github": "issue_fields",
+        "method": "map_issue_field",
+        "field_name": "DTS Team",
         "map": {
-            "Team: Apps": "Team: Apps",
-            "Team: Geo": "Team: Geo",
-            "Team: Dev": "Team: Dev",
-            "Team: Product": "Team: Product",
-            "Team: Maximo": "Team: Maximo",
-            "Team: Amanda": "Team: AMANDA",
-            "Team: Data Science": "Team: Data Science",
-            "Team: DTS Operations": "Team: DTS Operations",
-            "Team: Tech Services": "Team: Tech Services",
-            "[Team] :rotating_light: MISSING": "[Team] :rotating_light: MISSING",
+            "Team: Apps": "Apps",
+            "Team: Geo": "Geo",
+            "Team: Dev": "Dev",
+            "Team: Product": "Product",
+            "Team: Maximo": "Maximo",
+            "Team: Amanda": "ECM",
+            "Team: Data Science": "Data Science",
+            "Team: DTS Operations": "Operations",
+            "Team: Tech Services": "Tech Services",
         },
     },
     {
