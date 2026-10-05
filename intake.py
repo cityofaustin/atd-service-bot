@@ -151,6 +151,9 @@ def print_issue_field_options(payload):
             print(f"  - {option_name} ({option_id})")
         print()
 
+    # print("--- raw issue fields response ---")
+    # print(json.dumps(payload, indent=2))
+
 
 def blockquote(text):
     lines = str(text).splitlines()
