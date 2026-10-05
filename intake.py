@@ -44,6 +44,8 @@ CAPTURE_SUFFIX = "_knack_payload.json"
 
 GITHUB_URL = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
+# Organization issue type (Settings > Planning > Issue types), not a custom issue field.
+ISSUE_TYPE = "Task"
 GITHUB_HEADERS = {
     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
     "Accept": "application/vnd.github+json",
@@ -410,6 +412,7 @@ def main(capture=False, use_capture=False, no_send_to_github=False):
             "labels": issue.get("labels"),
             "assignees": issue.get("assignee"),
             "body": issue["description"],
+            "type": ISSUE_TYPE,
         }
         result = create_github_issue(github_payload)
 
