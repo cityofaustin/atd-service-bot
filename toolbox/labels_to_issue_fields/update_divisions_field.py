@@ -99,6 +99,8 @@ def get_list_of_workgroups_labels(issue):
     for label in all_labels:
         label_name = label.get("name")
         if label_name in workgroups.keys():
+            if label_name == "Workgroup: ACME" or label_name == "Workgroup: ATS":
+                continue
             divisions_on_issue.append(workgroups[label_name])
     return divisions_on_issue
 
@@ -116,16 +118,21 @@ def update_issue_field_divisions(issue_number, divisions):
 
 def main(args):
     # issue_type = args.type
-    issue_type = "epic"
-    all_issues = get_issues(issue_type)
-    logging.info(f"Total issues: {len(all_issues)}")
+    issue_type = "task"
     if issue_type not in ["epic", "task"]:
         raise ValueError(f"{issue_type} needs to be either task or epic.")
+    all_issues = get_issues(issue_type)
+    logging.info(f"Total issues: {len(all_issues)}")
+
 
     updated = 0
 
     for issue in all_issues:
         issue_number = issue.get("number")
+        # this is the cursed issue that wont let me update it
+        if issue_number == "4189" or issue_number == 4189:
+            logging.info(type(issue_number))
+            continue
         # if we already have the division issue field defined, just skip it
         if has_divisions_github_field(issue):
             continue
