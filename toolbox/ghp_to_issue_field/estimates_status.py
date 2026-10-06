@@ -110,6 +110,9 @@ def main(args):
             pull_request +=1
             continue
         issue_number = issue["content"]["number"]
+        # this is the issue that will not let us update it
+        if issue_number == "4189" or issue_number == 4189:
+            continue
         existing_estimate, existing_status = check_existing_issue_fields(
             issue.get("content")
         )
