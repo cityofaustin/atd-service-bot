@@ -174,7 +174,6 @@ FIELDS = [
             "Team: Maximo": "Maximo",
             "Team: Amanda": "ECM",
             "Team: Data Science": "Data Science",
-            "Team: DTS Operations": "Operations",
             "Team: Tech Services": "Tech Services",
         },
     },
