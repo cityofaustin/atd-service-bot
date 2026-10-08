@@ -26,6 +26,7 @@ import knackpy
 import requests
 
 from config.config import KNACK_APP, FIELDS
+from config.queries import ISSUE_FIELDS_QUERY
 import _transforms
 
 KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.getenv(
@@ -51,62 +52,6 @@ GITHUB_HEADERS = {
     "Accept": "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
 }
-
-ISSUE_FIELDS_QUERY = """
-{
-  repository(owner: "cityofaustin", name: "atd-data-tech") {
-    issueFields(first: 25) {
-      nodes {
-        __typename
-        ... on IssueFieldNumber {
-          name
-          description
-          dataType
-          id
-          fullDatabaseId
-        }
-        ... on IssueFieldMultiSelect {
-          description
-          name
-          id
-          fullDatabaseId
-          options {
-            id
-            name
-            databaseId
-            fullDatabaseId
-            description
-          }
-        }
-        ... on IssueFieldDate {
-          description
-          id
-          name
-          fullDatabaseId
-        }
-        ... on IssueFieldSingleSelect {
-          id
-          description
-          name
-          fullDatabaseId
-          options {
-            id
-            name
-            databaseId
-            fullDatabaseId
-          }
-        }
-        ... on IssueFieldText {
-          name
-          id
-          description
-          fullDatabaseId
-        }
-      }
-    }
-  }
-}
-"""
 
 
 def fetch_issue_fields():
