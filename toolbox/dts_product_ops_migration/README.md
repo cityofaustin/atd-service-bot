@@ -12,6 +12,7 @@ We now have the policy that each task can only have one team assigned.  `update_
 
 https://github.com/cityofaustin/atd-data-tech/issues/29765
 
-`estimates_status.
+Some of the issue fields (estimates and status) are populated from information on individual project boards. `estimates_status.py` queries a project board and updates the estimate and status issue field. If an issue's issue field is already populated, the script does not make any changes.
+
 
 

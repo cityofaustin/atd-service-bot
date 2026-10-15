@@ -1,3 +1,14 @@
+'''
+https://github.com/cityofaustin/atd-data-tech/issues/29765
+
+Pulls all issues from a project board, payload includes project status and estimate, as well as issue fields
+
+If no issue field estimate exists, update with existing estimate from project board. 
+
+Ideally if no issue field status exists, update with existing status from project board.
+However since the product ops rollout is in progress, there is code to skip open issues status. 
+
+'''
 import requests
 import logging
 import sys
