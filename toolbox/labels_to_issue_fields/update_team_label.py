@@ -119,6 +119,10 @@ def main(args):
         if has_team_github_field(issue):
             updated += 1
             continue
+        # this is the cursed issue that wont let me update it
+        if issue_number == "4189" or issue_number == 4189:
+            logging.info(type(issue_number))
+            continue
         other_teams = [name for name in teams if name != team_name]
         one_team = check_team_labels(issue, other_teams)
         if one_team:
