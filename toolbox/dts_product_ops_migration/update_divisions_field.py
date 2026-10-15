@@ -70,7 +70,9 @@ workgroups = {
 
 def get_issues(issue_type):
     url = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
-    params = {"per_page": 100, "state": "closed", "type": issue_type}
+    params = {"per_page": 100, "state": "all", "type": issue_type}
+    # Alternate way to update issues, only by specific workgroup
+    # params = {"per page": 100, "state": "all", "labels": "Workgroup: TED"}
     issues = []
     while url:
         logging.info(f"getting {url}")
@@ -86,9 +88,9 @@ def has_divisions_github_field(issue):
         field_values = issue.get("issue_field_values")
         for field in field_values:
             if field.get("issue_field_id") == 44588370:
-                logging.info(
-                    f"- {issue['number']} divisions are already {field.get('value')}"
-                )
+                # logging.info(
+                #     f"- {issue['number']} divisions are already {field.get('value')}"
+                # )
                 return True
     return False
 
@@ -113,7 +115,6 @@ def update_issue_field_divisions(issue_number, divisions):
         endpoint, json={"issue_field_values": issue_field_values}, headers=headers
     )
     res.raise_for_status()
-    # logging.info(res)
 
 
 def main(args):
