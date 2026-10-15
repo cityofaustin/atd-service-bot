@@ -89,7 +89,7 @@ def update_issue_fields(issue_number, estimate, status):
 
 def main(args):
     # team_name = args.board
-    team_name = "Amanda"
+    team_name = "Apps"
     board_number = project_boards[team_name]
     open_issues = 0
     pull_request = 0
@@ -107,7 +107,7 @@ def main(args):
         if not content:
             continue
         if content.get("isPullRequest"):
-            pull_request +=1
+            pull_request += 1
             continue
         issue_number = issue["content"]["number"]
         # this is the issue that will not let us update it
@@ -147,7 +147,7 @@ def main(args):
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     parser = argparse.ArgumentParser(
-        description="Check estimates and statuses from project board and update fields"
+        description="Check estimates and statuses from project board and update issue fields"
     )
     # parser.add_argument("--board", required=True, help="name of team board")
     args = parser.parse_args()
