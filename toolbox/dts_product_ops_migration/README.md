@@ -10,6 +10,8 @@ We now have the policy that each task can only have one team assigned.  `update_
 
 `update_teams_label.py` (note the _s_) adds Teams to Epic's DTS Teams field. This field is a multiselect whereas the Team label is single select. 
 
+`update_divisions_field.py` updates the Divisions issue field based on Workgroups labels.
+
 https://github.com/cityofaustin/atd-data-tech/issues/29765
 
 Some of the issue fields (estimates and status) are populated from information on individual project boards. `estimates_status.py` queries a project board and updates the estimate and status issue field. If an issue's issue field is already populated, the script does not make any changes.
