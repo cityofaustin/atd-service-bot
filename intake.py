@@ -78,28 +78,6 @@ def issue_field_nodes(payload):
     return nodes or []
 
 
-def print_issue_field_options(payload):
-    """Print each repository issue field and its dropdown options."""
-    for field in issue_field_nodes(payload):
-        if not field:
-            continue
-        name = field.get("name") or "(unnamed)"
-        typename = field.get("__typename", "unknown")
-        print(f"{name} [{typename}]")
-        options = field.get("options") or []
-        if not options:
-            print("  (no options)")
-            continue
-        for option in options:
-            option_name = option.get("name")
-            option_id = option.get("id")
-            print(f"  - {option_name} ({option_id})")
-        print()
-
-    # print("--- raw issue fields response ---")
-    # print(json.dumps(payload, indent=2))
-
-
 def blockquote(text):
     lines = str(text).splitlines()
     if not lines:
@@ -370,11 +348,6 @@ def parse_args(argv=None):
         action="store_true",
         help="Print prepared issues instead of creating GitHub issues or updating Knack.",
     )
-    parser.add_argument(
-        "--inspect-field-options",
-        action="store_true",
-        help="Print each GitHub issue field and its options, then exit.",
-    )
     return parser.parse_args(argv)
 
 
@@ -403,13 +376,8 @@ def load_latest_capture(app, view):
 def main(
     use_capture=False,
     no_send_to_github=False,
-    inspect_field_options=False,
 ):
     issue_fields = fetch_issue_fields()
-
-    if inspect_field_options:
-        print_issue_field_options(issue_fields)
-        return 0
 
     logging.info("Starting...")
     view = KNACK_APP["api_view"]["view"]
@@ -497,5 +465,4 @@ if __name__ == "__main__":
     main(
         use_capture=args.use_capture,
         no_send_to_github=args.no_send_to_github,
-        inspect_field_options=args.inspect_field_options,
     )
