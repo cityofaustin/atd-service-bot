@@ -14,13 +14,18 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 - repo names
 - labels
 """
+import argparse
+import json
 import logging
 import os
 import sys
+from pathlib import Path
+
 import knackpy
 import requests
 
 from config.config import KNACK_APP, FIELDS
+from config.queries import ISSUE_FIELDS_QUERY
 import _transforms
 
 KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.getenv(
@@ -34,12 +39,43 @@ KNACK_APP_ID = os.getenv("KNACK_APP_ID")
 GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 REPO = "atd-data-tech"
 
+# Files are written by toolbox/development_tools/capture_knack.py.
+CAPTURE_DIR = Path("captures")
+CAPTURE_SUFFIX = "_knack_payload.json"
+
 GITHUB_URL = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
+GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
+# Organization issue type (Settings > Planning > Issue types), not a custom issue field.
+ISSUE_TYPE = "Task"
 GITHUB_HEADERS = {
     "Authorization": f"Bearer {GITHUB_ACCESS_TOKEN}",
     "Accept": "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
 }
+
+
+def fetch_issue_fields():
+    """Load repository issue fields and their dropdown options from GitHub."""
+    res = requests.post(
+        GITHUB_GRAPHQL_URL,
+        headers=GITHUB_HEADERS,
+        json={"query": ISSUE_FIELDS_QUERY},
+    )
+    res.raise_for_status()
+    payload = res.json()
+    if payload.get("errors"):
+        raise RuntimeError(json.dumps(payload["errors"], indent=2))
+    return payload
+
+
+def issue_field_nodes(payload):
+    nodes = (
+        payload.get("data", {})
+        .get("repository", {})
+        .get("issueFields", {})
+        .get("nodes", [])
+    )
+    return nodes or []
 
 
 def blockquote(text):
@@ -49,7 +85,7 @@ def blockquote(text):
     return "\n".join(f"> {line}" if line else ">" for line in lines)
 
 
-def map_issue(issue, fields):
+def map_issue(issue, fields, issue_fields):
     github_issue = {
         "description": "",
         "labels": [],
@@ -58,6 +94,7 @@ def map_issue(issue, fields):
         "github_url": None,
         "knack_id": None,
         "repo": REPO,  # hardcoded since we switched to a monorepo
+        "issue_fields": {},
     }
 
     for field in fields:
@@ -140,6 +177,20 @@ def map_issue(issue, fields):
 
             github_issue[field["github"]] = new_value
 
+        elif field["method"] == "map_issue_field":
+            option_name = field["map"].get(knack_field_value)
+            if not option_name:
+                raise RuntimeError(
+                    f"No {field['field_name']} option for Knack value {knack_field_value!r}"
+                )
+            github_issue[field["github"]][field["field_name"]] = option_name
+
+        elif field["method"] == "map_issue_field_by_description":
+            option_name = option_name_for_description(
+                issue_fields, field["field_name"], knack_field_value
+            )
+            github_issue[field["github"]][field["field_name"]] = option_name
+
         elif field["method"] == "map_append":
             val_mapped = field["map"].get(knack_field_value)
 
@@ -192,6 +243,69 @@ def create_github_issue(github_payload):
     return res.json()
 
 
+def find_issue_field(issue_fields, field_name):
+    field = next(
+        (
+            node
+            for node in issue_field_nodes(issue_fields)
+            if node and node.get("name") == field_name
+        ),
+        None,
+    )
+    if not field:
+        raise RuntimeError(f"GitHub issue field {field_name!r} was not found")
+    return field
+
+
+def option_name_for_description(issue_fields, field_name, description):
+    """Return the option name whose description matches a Knack choice."""
+    field = find_issue_field(issue_fields, field_name)
+    matches = [
+        option.get("name")
+        for option in (field.get("options") or [])
+        if option and option.get("description") == description
+    ]
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"GitHub issue field {field_name!r} has no single option "
+            f"with description {description!r}"
+        )
+    return matches[0]
+
+
+def issue_field_assignment(issue_fields, field_name, option_name):
+    """Resolve an issue field to the REST field id and option value."""
+    field = find_issue_field(issue_fields, field_name)
+    option_names = {
+        option.get("name") for option in (field.get("options") or []) if option
+    }
+    names = option_name if isinstance(option_name, list) else [option_name]
+    missing = [name for name in names if name not in option_names]
+    if missing:
+        raise RuntimeError(
+            f"GitHub issue field {field_name!r} has no option {missing[0]!r}"
+        )
+
+    if field.get("__typename") == "IssueFieldMultiSelect":
+        value = names
+    else:
+        value = option_name
+
+    return {"field_id": int(field["fullDatabaseId"]), "value": value}
+
+
+def add_issue_field_values(issue_number, field_values):
+    """Add organization issue field values without replacing fields already set."""
+    headers = {**GITHUB_HEADERS, "X-GitHub-Api-Version": "2026-03-10"}
+    res = requests.post(
+        f"{GITHUB_URL}/{issue_number}/issue-field-values",
+        headers=headers,
+        json={"issue_field_values": field_values},
+    )
+    res.raise_for_status()
+    return res.json()
+
+
 def get_token(email, pw, app_id):
     # get knack app token for forms api
     data = {"email": email, "password": pw}
@@ -220,12 +334,59 @@ def form_submit(token, app_id, scene, view, payload):
     return res
 
 
-def main():
+def parse_args(argv=None):
+    parser = argparse.ArgumentParser(
+        description="Create GitHub issues from Knack DTS portal service requests."
+    )
+    parser.add_argument(
+        "--use-capture",
+        action="store_true",
+        help="Process the latest ./captures/*_knack_payload.json instead of querying Knack records.",
+    )
+    parser.add_argument(
+        "--no-send-to-github",
+        action="store_true",
+        help="Print prepared issues instead of creating GitHub issues or updating Knack.",
+    )
+    return parser.parse_args(argv)
+
+
+def latest_capture_path():
+    paths = sorted(CAPTURE_DIR.glob(f"*{CAPTURE_SUFFIX}"))
+    if not paths:
+        raise SystemExit(f"No Knack captures found in {CAPTURE_DIR}/")
+    return paths[-1]
+
+
+def records_from_capture(app, view, payload):
+    """Build knackpy records from a saved payload, skipping the view query."""
+    container = app._find_container(view)
+    container_key = container.obj or container.view
+    app.data[container_key] = payload
+    return app._records(container_key)
+
+
+def load_latest_capture(app, view):
+    path = latest_capture_path()
+    logging.info(f"Using capture {path}")
+    payload = json.loads(path.read_text())
+    return records_from_capture(app, view, payload)
+
+
+def main(
+    use_capture=False,
+    no_send_to_github=False,
+):
+    issue_fields = fetch_issue_fields()
+
     logging.info("Starting...")
     view = KNACK_APP["api_view"]["view"]
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
 
-    issues = app.get(view)
+    if use_capture:
+        issues = load_latest_capture(app, view)
+    else:
+        issues = app.get(view)
 
     if not issues:
         logging.info("No issues to process.")
@@ -235,13 +396,18 @@ def main():
 
     for issue in issues:
         # turn knack issues into github issues
-        github_issue = map_issue(issue, FIELDS)
+        github_issue = map_issue(issue, FIELDS, issue_fields)
         github_issue = format_title(github_issue)
         if not github_issue["assignee"]:
             # fallback when field_1122 is empty; on issue creation an email will
             # be sent to the transportation.data inbox, to be handled by the service desk
             github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
+
+    if no_send_to_github:
+        print(json.dumps(prepared, indent=2))
+        logging.info(f"{len(prepared)} issues prepared; not sent to GitHub.")
+        return 0
 
     token = get_token(
         KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME,
@@ -259,8 +425,16 @@ def main():
             "labels": issue.get("labels"),
             "assignees": issue.get("assignee"),
             "body": issue["description"],
+            "type": ISSUE_TYPE,
         }
         result = create_github_issue(github_payload)
+
+        field_values = [
+            issue_field_assignment(issue_fields, field_name, option_name)
+            for field_name, option_name in issue.get("issue_fields", {}).items()
+        ]
+        if field_values:
+            add_issue_field_values(result["number"], field_values)
 
         knack_payload = {
             "id": issue["knack_id"],
@@ -287,4 +461,8 @@ def main():
 if __name__ == "__main__":
     # airflow needs this to see logs from the DockerOperator
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    main()
+    args = parse_args()
+    main(
+        use_capture=args.use_capture,
+        no_send_to_github=args.no_send_to_github,
+    )

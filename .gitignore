@@ -3,6 +3,7 @@
 # custom
 .DS_Store
 env.list
+captures/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
