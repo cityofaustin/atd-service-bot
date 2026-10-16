@@ -19,7 +19,6 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 
 import knackpy
@@ -40,6 +39,7 @@ KNACK_APP_ID = os.getenv("KNACK_APP_ID")
 GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 REPO = "atd-data-tech"
 
+# Files are written by toolbox/development_tools/capture_knack.py.
 CAPTURE_DIR = Path("captures")
 CAPTURE_SUFFIX = "_knack_payload.json"
 
@@ -360,13 +360,7 @@ def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         description="Create GitHub issues from Knack DTS portal service requests."
     )
-    mode = parser.add_mutually_exclusive_group()
-    mode.add_argument(
-        "--capture",
-        action="store_true",
-        help="Write records queried from Knack to ./captures/<timestamp>_knack_payload.json, print them, then exit.",
-    )
-    mode.add_argument(
+    parser.add_argument(
         "--use-capture",
         action="store_true",
         help="Process the latest ./captures/*_knack_payload.json instead of querying Knack records.",
@@ -382,17 +376,6 @@ def parse_args(argv=None):
         help="Print each GitHub issue field and its options, then exit.",
     )
     return parser.parse_args(argv)
-
-
-def write_knack_capture(issues):
-    payload = [issue.data for issue in issues]
-    text = json.dumps(payload, indent=2) + "\n"
-    CAPTURE_DIR.mkdir(parents=True, exist_ok=True)
-    path = CAPTURE_DIR / f"{datetime.now().strftime('%Y%m%dT%H%M%S')}{CAPTURE_SUFFIX}"
-    path.write_text(text)
-    print(text, end="")
-    print(f"Wrote {path}")
-    return path
 
 
 def latest_capture_path():
@@ -418,7 +401,6 @@ def load_latest_capture(app, view):
 
 
 def main(
-    capture=False,
     use_capture=False,
     no_send_to_github=False,
     inspect_field_options=False,
@@ -429,8 +411,7 @@ def main(
         print_issue_field_options(issue_fields)
         return 0
 
-    if not capture:
-        logging.info("Starting...")
+    logging.info("Starting...")
     view = KNACK_APP["api_view"]["view"]
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
 
@@ -438,10 +419,6 @@ def main(
         issues = load_latest_capture(app, view)
     else:
         issues = app.get(view)
-
-    if capture:
-        write_knack_capture(issues)
-        return 0
 
     if not issues:
         logging.info("No issues to process.")
@@ -518,7 +495,6 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     args = parse_args()
     main(
-        capture=args.capture,
         use_capture=args.use_capture,
         no_send_to_github=args.no_send_to_github,
         inspect_field_options=args.inspect_field_options,
