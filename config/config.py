@@ -22,7 +22,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    }, # App name
+    },  # App name
     {
         "knack": "field_400",
         "github": "description",
@@ -125,9 +125,9 @@ FIELDS = [
             "Urban Forestry": "Workgroup: Urban Forestry",
             "Utilities & Structures": "Workgroup: Utilities & Structures",
             "Vision Zero": "Workgroup: VZ",
-            "Other": "Workgroup: Other"
+            "Other": "Workgroup: Other",
         },
-    }, # add Division to labels
+    },  # add Division to labels
     {
         "knack": "field_404",  # Impact
         "github": "labels",
@@ -198,7 +198,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "rename": "Workgroup",
-    }, # Workgroup
+    },  # Workgroup
     {
         "knack": "field_1099",  # DTS Service Group
         "github": "labels",
@@ -238,7 +238,7 @@ FIELDS = [
         "transform": "parse_attachment_url",
         "format": "quote_text",
         "rename": "Attachments",
-    }, # Attachments indicator
+    },  # Attachments indicator
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {
         "knack": "field_1122",
@@ -249,14 +249,14 @@ FIELDS = [
         "knack": "field_1133",
         "github": "labels",
         "method": "append",
-    }, # application label
+    },  # application label
     {
         "knack": "id",
         "github": "description",
         "method": "transform_merge",
         "transform": "knack_issue_url",
         "rename": "Knack link to issue",
-    }, # Link back to the knack issue
+    },  # Link back to the knack issue
 ]
 
 # key: fullDatabaseId
@@ -264,5 +264,6 @@ ISSUE_FIELDS_MAPPING = {
     5181: {"socrata_name": "estimate"},
     43035842: {"socrata_name": "description"},
     # 10226 is the status issue field, it is called pipeline in ODP and atd-product code
-    10226: {"socrata_name": "pipeline", "data_type": "single_select"}
+    10226: {"socrata_name": "pipeline", "data_type": "single_select"},
+    6520: {"socrata_name": "team", "data_type": "single_select"},
 }
