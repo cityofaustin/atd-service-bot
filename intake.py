@@ -344,7 +344,7 @@ def parse_args(argv=None):
         help="Process the latest ./captures/*_knack_payload.json instead of querying Knack records.",
     )
     parser.add_argument(
-        "--no-send-to-github",
+        "--dry-run",
         action="store_true",
         help="Print prepared issues instead of creating GitHub issues or updating Knack.",
     )
@@ -375,7 +375,7 @@ def load_latest_capture(app, view):
 
 def main(
     use_capture=False,
-    no_send_to_github=False,
+    dry_run=False,
 ):
     issue_fields = fetch_issue_fields()
 
@@ -404,7 +404,7 @@ def main(
             github_issue["assignee"] = ["atdservicebot"]
         prepared.append(github_issue)
 
-    if no_send_to_github:
+    if dry_run:
         print(json.dumps(prepared, indent=2))
         logging.info(f"{len(prepared)} issues prepared; not sent to GitHub.")
         return 0
@@ -464,5 +464,5 @@ if __name__ == "__main__":
     args = parse_args()
     main(
         use_capture=args.use_capture,
-        no_send_to_github=args.no_send_to_github,
+        dry_run=args.dry_run,
     )
