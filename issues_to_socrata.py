@@ -24,6 +24,7 @@ GITHUB_ENDPOINT = "https://api.github.com/graphql"
 
 
 def format_multi_select_options(selected_options):
+    """Converts list of multi select options into comma separated string of option names """
     if selected_options:
         option_names = [option.get("name") for option in selected_options]
         return ", ".join(option_names) or ""
@@ -94,10 +95,6 @@ def format_gh_issues(issue):
                 elif field.get("multi_select_options"):
                     issue_dict[socrata_field["socrata_name"]] = (
                         format_multi_select_options(field.get("multi_select_options"))
-                    )
-                elif field.get("data_type") == "date":
-                    issue_dict[socrata_field["socrata_name"]] = convert_timestamp(
-                        field["value"]
                     )
                 else:
                     issue_dict[socrata_field["socrata_name"]] = field["value"]
