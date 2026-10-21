@@ -266,5 +266,7 @@ ISSUE_FIELDS_MAPPING = {
     # 10226 is the status issue field, it is called pipeline in atd-product code
     10226: {"socrata_name": "status", "data_type": "single_select"},
     6520: {"socrata_name": "team", "data_type": "single_select"},
-    44251506: {"socrata_name": "application_url"}
+    45472131:  {"socrata_name": "teams", "data_type": "multi_select"},
+    44251506: {"socrata_name": "application_url"},
+    44588370: {"socrata_name": "divisions", "data_type": "multi_select"}
 }
