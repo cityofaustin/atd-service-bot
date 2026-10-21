@@ -87,7 +87,7 @@ def format_gh_issues(issue):
         "state",
         "number",
         "id",
-        "url",
+        "state_reason"
     ]:
         issue_dict[attr] = issue.get(attr)
 
@@ -106,6 +106,9 @@ def format_gh_issues(issue):
     issue_dict["type"] = issue.get("type").get("name") if issue.get("type") else None
 
     issue_dict["estimate"] = None  # estimate is issue_field 5181
+
+    issue_dict["api_url"] = issue.get("url")
+    issue_dict["web_url"] = issue.get("html_url")
 
     if issue.get("issue_field_values"):
         for field in issue["issue_field_values"]:
