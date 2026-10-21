@@ -40,11 +40,11 @@ def extract_workgroups_from_labels(labels):
     return ", ".join(workgroup_labels_no_prefix) or None
 
 
-def has_child_issues(subissue_summary):
-    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0"""
-    if subissue_summary and subissue_summary["total"] > 0:
-        return True
-    return False
+def format_multi_select_options(selected_options):
+    if selected_options:
+        option_names = [option.get("name") for option in selected_options]
+        return ", ".join(option_names) or ""
+    return ""
 
 
 def get_github_issues(github_access_token, limit):
@@ -81,14 +81,7 @@ def format_gh_issues(issue):
         [str(user.get("id")) for user in issue.get("assignees")]
     )
 
-    for attr in [
-        "title",
-        "body",
-        "state",
-        "number",
-        "id",
-        "state_reason"
-    ]:
+    for attr in ["title", "body", "state", "number", "id", "state_reason"]:
         issue_dict[attr] = issue.get(attr)
 
     # convert timestamps
@@ -118,8 +111,10 @@ def format_gh_issues(issue):
                     issue_dict[socrata_field["socrata_name"]] = field.get(
                         "single_select_option"
                     ).get("name")
-                if field.get("multi_select_options"):
-                    issue_dict[socrata_field["socrata_name"]] = format_multi_selection_options(field.get("multi_select_options"))
+                elif field.get("multi_select_options"):
+                    issue_dict[socrata_field["socrata_name"]] = (
+                        format_multi_select_options(field.get("multi_select_options"))
+                    )
                 else:
                     issue_dict[socrata_field["socrata_name"]] = field["value"]
 
