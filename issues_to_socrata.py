@@ -112,14 +112,16 @@ def format_gh_issues(issue):
 
     if issue.get("issue_field_values"):
         for field in issue["issue_field_values"]:
-            issue_field_socrata = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
-            if issue_field_socrata:
+            socrata_field = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
+            if socrata_field:
                 if field.get("single_select_option"):
-                    issue_dict[issue_field_socrata["socrata_name"]] = field.get(
+                    issue_dict[socrata_field["socrata_name"]] = field.get(
                         "single_select_option"
                     ).get("name")
+                if field.get("multi_select_options"):
+                    issue_dict[socrata_field["socrata_name"]] = format_multi_selection_options(field.get("multi_select_options"))
                 else:
-                    issue_dict[issue_field_socrata["socrata_name"]] = field["value"]
+                    issue_dict[socrata_field["socrata_name"]] = field["value"]
 
     return issue_dict
 
