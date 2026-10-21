@@ -271,5 +271,5 @@ ISSUE_FIELDS_MAPPING = {
     44588370: {"socrata_name": "divisions", "data_type": "multi_select"},
     44839126: {"socrata_name": "solution_type", "data_type": "single_select"},
     5162: {"socrata_name": "start_date", "data_type": "date"},
-    5163: {"socrata_name": "start_date", "data_type": "date"}
+    5163: {"socrata_name": "end_date", "data_type": "date"}
 }
