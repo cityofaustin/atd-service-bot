@@ -23,23 +23,6 @@ SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
 
 
-def extract_workgroups_from_labels(labels):
-    """Extract a comma-separated list of workgroup names from "Workgroup: Xyz" labels"""
-    workgroup_labels = list(
-        set(
-            [
-                label.get("name")
-                for label in labels
-                if label.get("name").startswith("Workgroup:")
-            ]
-        )
-    )
-    workgroup_labels_no_prefix = [
-        label.replace("Workgroup:", "").strip() for label in workgroup_labels
-    ]
-    return ", ".join(workgroup_labels_no_prefix) or None
-
-
 def format_multi_select_options(selected_options):
     if selected_options:
         option_names = [option.get("name") for option in selected_options]
@@ -69,9 +52,6 @@ def get_github_issues(github_access_token, limit):
 def format_gh_issues(issue):
     """Format github issue dictionary into fields expected in the ODP"""
     issue_dict = {}
-
-    # will be divisions in the future
-    issue_dict["workgroups"] = extract_workgroups_from_labels(issue.get("labels"))
 
     issue_dict["labels"] = ", ".join(
         [label.get("name") for label in issue.get("labels")]
@@ -114,6 +94,10 @@ def format_gh_issues(issue):
                 elif field.get("multi_select_options"):
                     issue_dict[socrata_field["socrata_name"]] = (
                         format_multi_select_options(field.get("multi_select_options"))
+                    )
+                elif field.get("data_type") == "date":
+                    issue_dict[socrata_field["socrata_name"]] = convert_timestamp(
+                        field["value"]
                     )
                 else:
                     issue_dict[socrata_field["socrata_name"]] = field["value"]
