@@ -19,6 +19,9 @@ query ProjectIssues($boardID: Int!, $cursor: String) {
               closed
             }
             ... on Issue {
+              repository {
+                name
+              }
               title
               number
               closed

@@ -100,7 +100,7 @@ def update_issue_fields(issue_number, estimate, status):
 
 def main(args):
     # team_name = args.board
-    team_name = "Apps"
+    team_name = "Geo"
     board_number = project_boards[team_name]
     open_issues = 0
     pull_request = 0

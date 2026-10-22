@@ -5,10 +5,12 @@ to see how many issues in our repo are lacking a team entirely.
 There were 777 issues
 
 """
+
 import requests
 import logging
 import sys
 import json
+import csv
 
 from secrets import GITHUB_ACCESS_TOKEN
 
@@ -52,6 +54,7 @@ def check_missing_team(issue):
             return False
     return True
 
+
 def check_missing_team_issue_field(issue):
     if issue.get("issue_field_values"):
         field_values = issue.get("issue_field_values")
@@ -62,27 +65,70 @@ def check_missing_team_issue_field(issue):
 
 
 def main():
-    all_issues = get_all_issues()
+    # all_issues = get_all_issues()
+
+    # with open("ALL_task_issues.json", "w", encoding="utf-8") as f:
+    #     json.dump(all_issues, f, ensure_ascii=False, indent=4)
+
+    with open("ALL_task_issues.json", "r") as f:
+        all_issues = json.load(f)
+
     logging.info(f"Total task issues: {len(all_issues)}")
 
     missing_teams = []
     missing_issue_field = []
+    output = []
 
     check = []
 
     for issue in all_issues:
         issue_number = issue.get("number")
         if check_missing_team(issue):
-            missing_teams.append(issue_number)
+            missing_teams.append(issue)
         if check_missing_team_issue_field(issue):
             missing_issue_field.append(issue_number)
 
-    for number in missing_issue_field:
-        if number not in missing_teams:
-            check.append(number)
+    for issue in missing_teams:
+        issue_number = issue.get("number")
+        if issue_number not in missing_issue_field:
+            continue
+        if len(issue["assignees"]) > 1:
+            assignees = [a["login"] for a in issue["assignees"]]
+        else:
+            assignees = ""
+        if len(issue["labels"]) > 1:
+            labels = [l["name"] for l in issue["labels"]]
+        else:
+            labels = ""
+        output.append(
+            {
+                "number": issue_number,
+                "title": issue["title"],
+                "date_created": issue["created_at"],
+                "author": issue["user"]["login"],
+                "assignees": assignees,
+                "labels": labels,
+                "status": issue["state"],
+                "date_closed": issue["closed_at"],
+                "url": issue["html_url"],
+            }
+        )
+
+    # for number in missing_issue_field:
+    #     if number not in missing_teams:
+    #         check.append(number)
+
+    logging.info(len(missing_teams))
 
     logging.info(check)
 
+    keys = output[0].keys()
+    with open(
+        f"missing_labels.csv", "w", newline=""
+    ) as output_file:
+        dict_writer = csv.DictWriter(output_file, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(output)
 
 
 if __name__ == "__main__":
