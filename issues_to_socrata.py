@@ -23,12 +23,28 @@ SOCRATA_APP_TOKEN = os.environ["SOCRATA_APP_TOKEN"]
 GITHUB_ENDPOINT = "https://api.github.com/graphql"
 
 
-def format_multi_select_options(selected_options):
-    """Converts list of multi select options into comma separated string of option names """
-    if selected_options:
-        option_names = [option.get("name") for option in selected_options]
-        return ", ".join(option_names) or ""
-    return ""
+def extract_workgroups_from_labels(labels):
+    """Extract a comma-separated list of workgroup names from "Workgroup: Xyz" labels"""
+    workgroup_labels = list(
+        set(
+            [
+                label.get("name")
+                for label in labels
+                if label.get("name").startswith("Workgroup:")
+            ]
+        )
+    )
+    workgroup_labels_no_prefix = [
+        label.replace("Workgroup:", "").strip() for label in workgroup_labels
+    ]
+    return ", ".join(workgroup_labels_no_prefix) or None
+
+
+def has_child_issues(subissue_summary):
+    """Return True if total in sub_issues_summary from issue_raw_data is greater than 0"""
+    if subissue_summary and subissue_summary["total"] > 0:
+        return True
+    return False
 
 
 def get_github_issues(github_access_token, limit):
@@ -54,6 +70,9 @@ def format_gh_issues(issue):
     """Format github issue dictionary into fields expected in the ODP"""
     issue_dict = {}
 
+    # will be divisions in the future
+    issue_dict["workgroups"] = extract_workgroups_from_labels(issue.get("labels"))
+
     issue_dict["labels"] = ", ".join(
         [label.get("name") for label in issue.get("labels")]
     )
@@ -62,7 +81,14 @@ def format_gh_issues(issue):
         [str(user.get("id")) for user in issue.get("assignees")]
     )
 
-    for attr in ["title", "body", "state", "number", "id", "state_reason"]:
+    for attr in [
+        "title",
+        "body",
+        "state",
+        "number",
+        "id",
+        "url",
+    ]:
         issue_dict[attr] = issue.get(attr)
 
     # convert timestamps
@@ -81,23 +107,16 @@ def format_gh_issues(issue):
 
     issue_dict["estimate"] = None  # estimate is issue_field 5181
 
-    issue_dict["api_url"] = issue.get("url")
-    issue_dict["web_url"] = issue.get("html_url")
-
     if issue.get("issue_field_values"):
         for field in issue["issue_field_values"]:
-            socrata_field = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
-            if socrata_field:
+            issue_field_socrata = ISSUE_FIELDS_MAPPING.get(field["issue_field_id"])
+            if issue_field_socrata:
                 if field.get("single_select_option"):
-                    issue_dict[socrata_field["socrata_name"]] = field.get(
+                    issue_dict[issue_field_socrata["socrata_name"]] = field.get(
                         "single_select_option"
                     ).get("name")
-                elif field.get("multi_select_options"):
-                    issue_dict[socrata_field["socrata_name"]] = (
-                        format_multi_select_options(field.get("multi_select_options"))
-                    )
                 else:
-                    issue_dict[socrata_field["socrata_name"]] = field["value"]
+                    issue_dict[issue_field_socrata["socrata_name"]] = field["value"]
 
     return issue_dict
 
