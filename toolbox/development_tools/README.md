@@ -30,6 +30,6 @@ Prints each GitHub issue field on `cityofaustin/atd-data-tech`, including its ty
 python toolbox/development_tools/inspect_field_options.py
 ```
 
-Use this when issue-field choices change on GitHub and `config/config.py` needs to be updated to match.
+Use this when a GitHub issue field id changes, or when TPW Divisions choices change and `config/config.py` needs the new descriptions. DTS Team option names are mapped in `FIELDS` and are not copied from this listing.
 
 Requires `GITHUB_ACCESS_TOKEN`.

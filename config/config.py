@@ -220,6 +220,62 @@ FIELDS = [
     }, # Link back to the knack issue
 ]
 
+# Snapshot of the GitHub issue fields intake sets on a new issue.
+# field_id is the field's numeric id. multiple is true for a multi-select field.
+# DTS Team option names come from the field_1099 map in FIELDS and are sent as-is.
+# TPW Divisions options map each GitHub option name to the Knack workgroup text
+# intake matches. 
+GITHUB_ISSUE_FIELDS = {
+    "DTS Team": {
+        "field_id": 6520,
+        "multiple": False,
+    },
+    "TPW Divisions": {
+        "field_id": 44588370,
+        "multiple": True,
+        "options": {
+            # We look up the abbreviation by the description, so these values need to match Knack
+            "Admin": "Administration",
+            "AMD": "Arterial Management",
+            "ATSD": "Active Transportation & Street Design",
+            "CCG": "Construction Coordination Group",
+            "CSD": "Community Services",
+            "DM": "District Maintenance",
+            "DTS": "Data & Technology Services",
+            "EM": "Emergency Management",
+            "Equity": "Equity",
+            "Finance": "Finance",
+            "HR": "Human Resources",
+            "LA": "Legislative Affairs",
+            "LDE": "Land Development Engineering",
+            "Logistics": "Logistics",
+            "OCE": "Office of the City Engineer",
+            "OPM": "Office of Performance Management",
+            "OSE": "Office of Special Events",
+            "PD": "Project Delivery",
+            "PE": "Parking Enterprise",
+            "PIO": "Public Information Office",
+            "PO": "Pavement Operations",
+            # Knack has Right of way Management; GitHub has Right-of-way Management.
+            "ROW": "Right of Way Management",
+            # Knack has Street & Bridge Operations; GitHub has Infrastructure Operations.
+            "SBO": "Street & Bridge Operations",
+            "SDD": "Systems Development",
+            "SMD": "Signs & Markings",
+            "SMP": "Strategic Mobility Projects",
+            "SP": "Strategic Projects",
+            # Knack has Sidewalk & Urban Trails, GitHub has Sidewalks & Urban Trails Division
+            "SUTD": "Sidewalk & Urban Trails",
+            "TDS": "Transportation Development Services",
+            "TED": "Transportation Engineering",
+            "UF": "Urban Forestry",
+            "US": "Utilities & Structures",
+            "VZ": "Vision Zero",
+            "TPW": "Transportation Public Works",
+        },
+    },
+}
+
 # key: fullDatabaseId
 ISSUE_FIELDS_MAPPING = {
     5181: {"socrata_name": "estimate"},

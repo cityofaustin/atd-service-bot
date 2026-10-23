@@ -13,6 +13,7 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 ...or if you change any of these things on github:
 - repo names
 - labels
+- issue field ids in GITHUB_ISSUE_FIELDS, and TPW Divisions option names and descriptions
 """
 import argparse
 import json
@@ -24,8 +25,7 @@ from pathlib import Path
 import knackpy
 import requests
 
-from config.config import KNACK_APP, FIELDS
-from config.queries import ISSUE_FIELDS_QUERY
+from config.config import GITHUB_ISSUE_FIELDS, KNACK_APP, FIELDS
 import _transforms
 
 KNACK_DTS_PORTAL_SERVICE_BOT_USERNAME = os.getenv(
@@ -44,7 +44,6 @@ CAPTURE_DIR = Path("captures")
 CAPTURE_SUFFIX = "_knack_payload.json"
 
 GITHUB_URL = f"https://api.github.com/repos/cityofaustin/atd-data-tech/issues"
-GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 # Organization issue type (Settings > Planning > Issue types), not a custom issue field.
 ISSUE_TYPE = "Task"
 GITHUB_HEADERS = {
@@ -54,30 +53,6 @@ GITHUB_HEADERS = {
 }
 
 
-def fetch_issue_fields():
-    """Load repository issue fields and their dropdown options from GitHub."""
-    res = requests.post(
-        GITHUB_GRAPHQL_URL,
-        headers=GITHUB_HEADERS,
-        json={"query": ISSUE_FIELDS_QUERY},
-    )
-    res.raise_for_status()
-    payload = res.json()
-    if payload.get("errors"):
-        raise RuntimeError(json.dumps(payload["errors"], indent=2))
-    return payload
-
-
-def issue_field_nodes(payload):
-    nodes = (
-        payload.get("data", {})
-        .get("repository", {})
-        .get("issueFields", {})
-        .get("nodes", [])
-    )
-    return nodes or []
-
-
 def blockquote(text):
     lines = str(text).splitlines()
     if not lines:
@@ -85,7 +60,7 @@ def blockquote(text):
     return "\n".join(f"> {line}" if line else ">" for line in lines)
 
 
-def map_issue(issue, fields, issue_fields):
+def map_issue(issue, fields):
     github_issue = {
         "description": "",
         "labels": [],
@@ -187,7 +162,7 @@ def map_issue(issue, fields, issue_fields):
 
         elif field["method"] == "map_issue_field_by_description":
             option_name = get_option_name_for_description(
-                issue_fields, field["field_name"], knack_field_value
+                field["field_name"], knack_field_value
             )
             github_issue[field["github"]][field["field_name"]] = option_name
 
@@ -243,27 +218,20 @@ def create_github_issue(github_payload):
     return res.json()
 
 
-def find_issue_field(issue_fields, field_name):
-    field = next(
-        (
-            node
-            for node in issue_field_nodes(issue_fields)
-            if node and node.get("name") == field_name
-        ),
-        None,
-    )
+def find_issue_field(field_name):
+    field = GITHUB_ISSUE_FIELDS.get(field_name)
     if not field:
         raise RuntimeError(f"GitHub issue field {field_name!r} was not found")
     return field
 
 
-def get_option_name_for_description(issue_fields, field_name, description):
+def get_option_name_for_description(field_name, description):
     """Return the option name whose description matches a Knack choice."""
-    field = find_issue_field(issue_fields, field_name)
+    field = find_issue_field(field_name)
     matches = [
-        option.get("name")
-        for option in (field.get("options") or [])
-        if option and option.get("description") == description
+        name
+        for name, option_description in field["options"].items()
+        if option_description == description
     ]
     if len(matches) != 1:
         raise ValueError(
@@ -273,25 +241,24 @@ def get_option_name_for_description(issue_fields, field_name, description):
     return matches[0]
 
 
-def get_issue_field_assignment(issue_fields, field_name, option_name):
+def get_issue_field_assignment(field_name, option_name):
     """Resolve an issue field to the REST field id and option value."""
-    field = find_issue_field(issue_fields, field_name)
-    option_names = {
-        option.get("name") for option in (field.get("options") or []) if option
-    }
+    field = find_issue_field(field_name)
     names = option_name if isinstance(option_name, list) else [option_name]
-    missing = [name for name in names if name not in option_names]
-    if missing:
-        raise ValueError(
-            f"GitHub issue field {field_name!r} has no option {missing[0]!r}"
-        )
+    options = field.get("options")
+    if options is not None:
+        missing = [name for name in names if name not in options]
+        if missing:
+            raise ValueError(
+                f"GitHub issue field {field_name!r} has no option {missing[0]!r}"
+            )
 
-    if field.get("__typename") == "IssueFieldMultiSelect":
+    if field["multiple"]:
         value = names
     else:
         value = option_name
 
-    return {"field_id": int(field["fullDatabaseId"]), "value": value}
+    return {"field_id": int(field["field_id"]), "value": value}
 
 
 def add_issue_field_values(issue_number, field_values):
@@ -385,8 +352,6 @@ def main(
     use_capture=False,
     dry_run=False,
 ):
-    issue_fields = fetch_issue_fields()
-
     logging.info("Starting...")
     view = KNACK_APP["api_view"]["view"]
     app = knackpy.App(app_id=KNACK_APP_ID, api_key=KNACK_API_KEY)
@@ -404,7 +369,7 @@ def main(
 
     for issue in issues:
         # turn knack issues into github issues
-        github_issue = map_issue(issue, FIELDS, issue_fields)
+        github_issue = map_issue(issue, FIELDS)
         github_issue = format_title(github_issue)
         if not github_issue["assignee"]:
             # fallback when field_1122 is empty; on issue creation an email will
@@ -438,7 +403,7 @@ def main(
         result = create_github_issue(github_payload)
 
         field_values = [
-            get_issue_field_assignment(issue_fields, field_name, option_name)
+            get_issue_field_assignment(field_name, option_name)
             for field_name, option_name in issue.get("issue_fields", {}).items()
         ]
         if field_values:
