@@ -180,7 +180,7 @@ def map_issue(issue, fields, issue_fields):
         elif field["method"] == "map_issue_field":
             option_name = field["map"].get(knack_field_value)
             if not option_name:
-                raise RuntimeError(
+                raise ValueError(
                     f"No {field['field_name']} option for Knack value {knack_field_value!r}"
                 )
             github_issue[field["github"]][field["field_name"]] = option_name
@@ -266,7 +266,7 @@ def option_name_for_description(issue_fields, field_name, description):
         if option and option.get("description") == description
     ]
     if len(matches) != 1:
-        raise RuntimeError(
+        raise ValueError(
             f"GitHub issue field {field_name!r} has no single option "
             f"with description {description!r}"
         )
@@ -282,7 +282,7 @@ def issue_field_assignment(issue_fields, field_name, option_name):
     names = option_name if isinstance(option_name, list) else [option_name]
     missing = [name for name in names if name not in option_names]
     if missing:
-        raise RuntimeError(
+        raise ValueError(
             f"GitHub issue field {field_name!r} has no option {missing[0]!r}"
         )
 
