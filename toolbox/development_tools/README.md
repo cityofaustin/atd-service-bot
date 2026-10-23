@@ -18,6 +18,8 @@ python intake.py --use-capture
 
 Add `--dry-run` to print the issues intake would create without opening GitHub issues or updating Knack.
 
+When the Knack app changes (fields, choice lists, or the view this script reads), delete the old files in `captures/` and run the script again. `--use-capture` replays saved records as they were, so a stale capture will not match the updated app.
+
 Requires `KNACK_API_KEY` and `KNACK_APP_ID`.
 
 ## `inspect_field_options.py`
