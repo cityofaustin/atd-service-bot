@@ -414,7 +414,7 @@ def main(
         prepared.append(github_issue)
 
     if dry_run:
-        print(json.dumps(prepared, indent=2))
+        logging.info(json.dumps(prepared, indent=2))
         logging.info(f"{len(prepared)} issues prepared; not sent to GitHub.")
         return 0
 
