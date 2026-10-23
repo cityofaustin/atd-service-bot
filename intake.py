@@ -295,7 +295,7 @@ def get_issue_field_assignment(issue_fields, field_name, option_name):
 
 
 def add_issue_field_values(issue_number, field_values):
-    """Add organization issue field values without replacing fields already set."""
+    """Add organization issue field values to issue."""
     headers = {**GITHUB_HEADERS, "X-GitHub-Api-Version": "2026-03-10"}
     res = requests.post(
         f"{GITHUB_URL}/{issue_number}/issue-field-values",
