@@ -39,7 +39,7 @@ KNACK_APP_ID = os.getenv("KNACK_APP_ID")
 GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
 REPO = "atd-data-tech"
 
-# Files are written by toolbox/development_tools/capture_knack.py.
+# Payload files are written by toolbox/development_tools/capture_knack.py.
 CAPTURE_DIR = Path("captures")
 CAPTURE_SUFFIX = "_knack_payload.json"
 
@@ -352,7 +352,16 @@ def parse_args(argv=None):
 
 
 def latest_capture_path():
-    paths = sorted(CAPTURE_DIR.glob(f"*{CAPTURE_SUFFIX}"))
+    """Return the newest Knack payload in captures/.
+
+    Only ``*_knack_payload.json`` files are captures. ``README.md`` stays in
+    the directory so git keeps it, and is never loaded as a payload.
+    """
+    paths = sorted(
+        path
+        for path in CAPTURE_DIR.glob(f"*{CAPTURE_SUFFIX}")
+        if path.is_file() and path.name.endswith(CAPTURE_SUFFIX)
+    )
     if not paths:
         raise SystemExit(f"No Knack captures found in {CAPTURE_DIR}/")
     return paths[-1]
