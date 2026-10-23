@@ -368,11 +368,10 @@ def latest_capture_path():
 
 
 def records_from_capture(app, view, payload):
-    """Build knackpy records from a saved payload, skipping the view query."""
+    """Build knackpy records from a saved view payload, skipping the view query."""
     container = app._find_container(view)
-    container_key = container.obj or container.view
-    app.data[container_key] = payload
-    return app._records(container_key)
+    app.data[container.view] = payload
+    return app._records(container.view)
 
 
 def load_latest_capture(app, view):
