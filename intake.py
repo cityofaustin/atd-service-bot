@@ -186,7 +186,7 @@ def map_issue(issue, fields, issue_fields):
             github_issue[field["github"]][field["field_name"]] = option_name
 
         elif field["method"] == "map_issue_field_by_description":
-            option_name = option_name_for_description(
+            option_name = get_option_name_for_description(
                 issue_fields, field["field_name"], knack_field_value
             )
             github_issue[field["github"]][field["field_name"]] = option_name
@@ -257,7 +257,7 @@ def find_issue_field(issue_fields, field_name):
     return field
 
 
-def option_name_for_description(issue_fields, field_name, description):
+def get_option_name_for_description(issue_fields, field_name, description):
     """Return the option name whose description matches a Knack choice."""
     field = find_issue_field(issue_fields, field_name)
     matches = [
@@ -273,7 +273,7 @@ def option_name_for_description(issue_fields, field_name, description):
     return matches[0]
 
 
-def issue_field_assignment(issue_fields, field_name, option_name):
+def get_issue_field_assignment(issue_fields, field_name, option_name):
     """Resolve an issue field to the REST field id and option value."""
     field = find_issue_field(issue_fields, field_name)
     option_names = {
@@ -439,7 +439,7 @@ def main(
         result = create_github_issue(github_payload)
 
         field_values = [
-            issue_field_assignment(issue_fields, field_name, option_name)
+            get_issue_field_assignment(issue_fields, field_name, option_name)
             for field_name, option_name in issue.get("issue_fields", {}).items()
         ]
         if field_values:
