@@ -135,7 +135,6 @@ FIELDS = [
         "map": {
             "Bug Report — Something is not working": "Type: Bug Report",
             "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
-            "Geospatial Services (GIS, Maps, etc.)": "Team: Geo",
             "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
             "IT Support — Help with licenses, accounts, hardware, etc.": "Type: IT Support",
             "Something Else": "Type: Other",
