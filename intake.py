@@ -335,10 +335,16 @@ def latest_capture_path():
 
 
 def records_from_capture(app, view, payload):
-    """Build knackpy records from a saved view payload, skipping the view query."""
-    container = app._find_container(view)
-    app.data[container.view] = payload
-    return app._records(container.view)
+    """Build knackpy records from a saved view payload, skipping the view query.
+
+    Side-load the payload the way knackpy documents for ``App.data``. An empty
+    payload returns immediately: knackpy treats a missing or empty data entry as
+    unloaded and would query the view.
+    """
+    if not payload:
+        return []
+    app.data = {view: payload}
+    return app.get(view)
 
 
 def load_latest_capture(app, view):
