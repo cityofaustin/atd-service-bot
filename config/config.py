@@ -265,11 +265,13 @@ ISSUE_FIELDS_MAPPING = {
     43035842: {"socrata_name": "description"},
     # 10226 is the status issue field, it is called pipeline in atd-product code
     10226: {"socrata_name": "status", "data_type": "single_select"},
-    6520: {"socrata_name": "team", "data_type": "single_select"},
-    45472131:  {"socrata_name": "teams", "data_type": "multi_select"},
+    # issues either have the DTS Team field or the DTS Teams field, should not have both. Both can
+    # write to the team field in socrata
+    6520: {"socrata_name": "team", "data_type": "single_select"},  # DTS Team
+    45472131: {"socrata_name": "team", "data_type": "multi_select"},  # DTS Teams
     44251506: {"socrata_name": "application_url"},
     44588370: {"socrata_name": "divisions", "data_type": "multi_select"},
     44839126: {"socrata_name": "solution_type", "data_type": "single_select"},
     5162: {"socrata_name": "start_date", "data_type": "date"},
-    5163: {"socrata_name": "end_date", "data_type": "date"}
+    5163: {"socrata_name": "end_date", "data_type": "date"},
 }
