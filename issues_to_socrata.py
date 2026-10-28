@@ -118,14 +118,8 @@ def main(args):
     logging.info("Fetching github issues...")
     request_limit = args.limit if args.limit else 999999
     issues_gh = get_github_issues(GITHUB_ACCESS_TOKEN, request_limit)
+    logging.info("Formatting issues...")
     issues = [format_gh_issues(issue) for issue in issues_gh]
-
-    # Will remove after I get confirmation that the DTS statuses are being updated
-    # since the DTS status should then be closed if the issue is closed
-    logging.info("Processing statuses...")
-    for issue in issues:
-        if issue["state"] == "closed":
-            issue["pipeline"] = "Closed"
 
     client = sodapy.Socrata(
         SOCRATA_ENDPOINT,
