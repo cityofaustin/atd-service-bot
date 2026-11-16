@@ -255,21 +255,19 @@ GITHUB_ISSUE_FIELDS = {
             "PE": "Parking Enterprise",
             "PIO": "Public Information Office",
             "PO": "Pavement Operations",
-            # Knack has Right of way Management; GitHub has Right-of-way Management.
-            "ROW": "Right of Way Management",
-            # Knack has Street & Bridge Operations; GitHub has Infrastructure Operations.
-            "SBO": "Street & Bridge Operations",
+            "ROW": "Right-of-Way Management",
+            "SBO": "Infrastructure Operations",
             "SDD": "Systems Development",
             "SMD": "Signs & Markings",
-            "SMP": "Strategic Mobility Projects",
-            "SP": "Strategic Projects",
-            # Knack has Sidewalk & Urban Trails, GitHub has Sidewalks & Urban Trails Division
+            "SPD": "Strategic Projects",
             "SUTD": "Sidewalk & Urban Trails",
             "TDS": "Transportation Development Services",
             "TED": "Transportation Engineering",
             "UF": "Urban Forestry",
             "US": "Utilities & Structures",
             "VZ": "Vision Zero",
+            # Knack does not have "Transportation Public Works" as a division, but we have a GH label for it.
+            # This option should not be reachable, but it could be added to knack, so it's left here.
             "TPW": "Transportation Public Works",
         },
     },
