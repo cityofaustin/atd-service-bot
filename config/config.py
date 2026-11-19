@@ -86,6 +86,7 @@ FIELDS = [
     },  # Describe workarounds
     {
         "knack": "field_1101",  # Division
+<<<<<<< HEAD
         "github": "labels",
         "method": "map_append",
         "format": "quote_text",
@@ -128,6 +129,12 @@ FIELDS = [
             "Other": "Workgroup: Other",
         },
     },  # add Division to labels
+=======
+        "github": "issue_fields",
+        "method": "map_issue_field_by_description",
+        "field_name": "TPW Divisions",
+    },
+>>>>>>> production
     {
         "knack": "field_404",  # Impact
         "github": "labels",
@@ -173,7 +180,6 @@ FIELDS = [
         "map": {
             "Bug Report — Something is not working": "Type: Bug Report",
             "Feature or Enhancement — An application I use could be improved": "Type: Enhancement",
-            "Geospatial Services (GIS, Maps, etc.)": "Team: Geo",
             "New Project — My needs are not met by the technology & data available to me": "Type: New Application",
             "IT Support — Help with licenses, accounts, hardware, etc.": "Type: IT Support",
             "Something Else": "Type: Other",
@@ -201,19 +207,18 @@ FIELDS = [
     },  # Workgroup
     {
         "knack": "field_1099",  # DTS Service Group
-        "github": "labels",
-        "method": "map_append",
+        "github": "issue_fields",
+        "method": "map_issue_field",
+        "field_name": "DTS Team",
         "map": {
-            "Team: Apps": "Team: Apps",
-            "Team: Geo": "Team: Geo",
-            "Team: Dev": "Team: Dev",
-            "Team: Product": "Team: Product",
-            "Team: Maximo": "Team: Maximo",
-            "Team: Amanda": "Team: AMANDA",
-            "Team: Data Science": "Team: Data Science",
-            "Team: DTS Operations": "Team: DTS Operations",
-            "Team: Tech Services": "Team: Tech Services",
-            "[Team] :rotating_light: MISSING": "[Team] :rotating_light: MISSING",
+            "Team: Apps": "Apps",
+            "Team: Geo": "Geo",
+            "Team: Dev": "Dev",
+            "Team: Product": "Product",
+            "Team: Maximo": "Maximo",
+            "Team: Amanda": "ECM",
+            "Team: Data Science": "Data Science",
+            "Team: Tech Services": "Tech Services",
         },
     },
     {
@@ -258,6 +263,68 @@ FIELDS = [
         "rename": "Knack link to issue",
     },  # Link back to the knack issue
 ]
+
+# Snapshot of the GitHub issue fields intake sets on a new issue.
+# field_id is the field's numeric id. multiple is true for a multi-select field.
+# DTS Team option names come from the field_1099 map in FIELDS and are sent as-is.
+# DTS Status is always set to New. That option has no description on GitHub.
+# TPW Divisions options map each GitHub option name to the Knack workgroup text
+# intake matches. 
+GITHUB_ISSUE_FIELDS = {
+    "DTS Team": {
+        "field_id": 6520,
+        "multiple": False,
+    },
+    "DTS Status": {
+        "field_id": 10226,
+        "multiple": False,
+        "options": {
+            "New": "",
+        },
+    },
+    "TPW Divisions": {
+        "field_id": 44588370,
+        "multiple": True,
+        "options": {
+            # We look up the abbreviation by the description, so these values need to match Knack
+            "Admin": "Administration",
+            "AMD": "Arterial Management",
+            "ATSD": "Active Transportation & Street Design",
+            "CCG": "Construction Coordination Group",
+            "CSD": "Community Services",
+            "DM": "District Maintenance",
+            "DTS": "Data & Technology Services",
+            "EM": "Emergency Management",
+            "Equity": "Equity",
+            "Finance": "Finance",
+            "HR": "Human Resources",
+            "LA": "Legislative Affairs",
+            "LDE": "Land Development Engineering",
+            "Logistics": "Logistics",
+            "OCE": "Office of the City Engineer",
+            "OPM": "Office of Performance Management",
+            "OSE": "Office of Special Events",
+            "PD": "Project Delivery",
+            "PE": "Parking Enterprise",
+            "PIO": "Public Information Office",
+            "PO": "Pavement Operations",
+            "ROW": "Right-of-Way Management",
+            "SBO": "Infrastructure Operations",
+            "SDD": "Systems Development",
+            "SMD": "Signs & Markings",
+            "SPD": "Strategic Projects",
+            "SUTD": "Sidewalk & Urban Trails",
+            "TDS": "Transportation Development Services",
+            "TED": "Transportation Engineering",
+            "UF": "Urban Forestry",
+            "US": "Utilities & Structures",
+            "VZ": "Vision Zero",
+            # Knack does not have "Transportation Public Works" as a division, but we have a GH label for it.
+            # This option should not be reachable, but it could be added to knack, so it's left here.
+            "TPW": "Transportation Public Works",
+        },
+    },
+}
 
 # key: fullDatabaseId
 ISSUE_FIELDS_MAPPING = {

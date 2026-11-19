@@ -3,6 +3,9 @@
 # custom
 .DS_Store
 env.list
+# Local Knack payloads. The README stays tracked so the directory is not empty.
+captures/*
+!captures/README.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
