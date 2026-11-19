@@ -222,12 +222,20 @@ FIELDS = [
 # Snapshot of the GitHub issue fields intake sets on a new issue.
 # field_id is the field's numeric id. multiple is true for a multi-select field.
 # DTS Team option names come from the field_1099 map in FIELDS and are sent as-is.
+# DTS Status is always set to New. That option has no description on GitHub.
 # TPW Divisions options map each GitHub option name to the Knack workgroup text
 # intake matches. 
 GITHUB_ISSUE_FIELDS = {
     "DTS Team": {
         "field_id": 6520,
         "multiple": False,
+    },
+    "DTS Status": {
+        "field_id": 10226,
+        "multiple": False,
+        "options": {
+            "New": "",
+        },
     },
     "TPW Divisions": {
         "field_id": 44588370,
