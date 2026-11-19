@@ -22,7 +22,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "format": "quote_text",
-    }, # App name
+    },  # App name
     {
         "knack": "field_400",
         "github": "description",
@@ -159,7 +159,7 @@ FIELDS = [
         "github": "description",
         "method": "merge",
         "rename": "Workgroup",
-    }, # Workgroup
+    },  # Workgroup
     {
         "knack": "field_1099",  # DTS Service Group
         "github": "issue_fields",
@@ -198,7 +198,7 @@ FIELDS = [
         "transform": "parse_attachment_url",
         "format": "quote_text",
         "rename": "Attachments",
-    }, # Attachments indicator
+    },  # Attachments indicator
     {"knack": "id", "github": "knack_id", "method": "copy", "format": "none"},
     {
         "knack": "field_1122",
@@ -209,14 +209,14 @@ FIELDS = [
         "knack": "field_1133",
         "github": "labels",
         "method": "append",
-    }, # application label
+    },  # application label
     {
         "knack": "id",
         "github": "description",
         "method": "transform_merge",
         "transform": "knack_issue_url",
         "rename": "Knack link to issue",
-    }, # Link back to the knack issue
+    },  # Link back to the knack issue
 ]
 
 # Snapshot of the GitHub issue fields intake sets on a new issue.
@@ -285,6 +285,14 @@ GITHUB_ISSUE_FIELDS = {
 ISSUE_FIELDS_MAPPING = {
     5181: {"socrata_name": "estimate"},
     43035842: {"socrata_name": "description"},
-    # 10226 is the status issue field, it is called pipeline in ODP and atd-product code
-    10226: {"socrata_name": "pipeline", "data_type": "single_select"}
+    10226: {"socrata_name": "status", "data_type": "single_select"},
+    # issues either have the DTS Team field or the DTS Teams field, should not have both. Both can
+    # write to the team field in socrata
+    6520: {"socrata_name": "team", "data_type": "single_select"},  # DTS Team
+    45472131: {"socrata_name": "team", "data_type": "multi_select"},  # DTS Teams
+    44251506: {"socrata_name": "application_url"},
+    44588370: {"socrata_name": "divisions", "data_type": "multi_select"},
+    44839126: {"socrata_name": "solution_type", "data_type": "single_select"},
+    5162: {"socrata_name": "start_date", "data_type": "date"},
+    5163: {"socrata_name": "end_date", "data_type": "date"},
 }
