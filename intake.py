@@ -13,7 +13,7 @@ You must update `config/config.py` if you change any of these in the DTS Knack a
 ...or if you change any of these things on github:
 - repo names
 - labels
-- issue field ids in GITHUB_ISSUE_FIELDS, and TPW Divisions option names and descriptions
+- issue field ids in GITHUB_ISSUE_FIELDS, TPW Divisions option names and descriptions, and the DTS Status option name New
 """
 import argparse
 import json
@@ -381,6 +381,8 @@ def main(
             # fallback when field_1122 is empty; on issue creation an email will
             # be sent to the transportation.data inbox, to be handled by the service desk
             github_issue["assignee"] = ["atdservicebot"]
+        # Every new issue starts in DTS Status New. This is not derived from Knack.
+        github_issue["issue_fields"]["DTS Status"] = "New"
         prepared.append(github_issue)
 
     if dry_run:
